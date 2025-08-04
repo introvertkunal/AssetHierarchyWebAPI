@@ -1,0 +1,25 @@
+[
+  {
+    "Name": "Machine Z",
+    "Children": [
+      {
+        "Name": "Machine Y",
+        "Children": [
+          {
+            "Name": "Machine W",
+            "Children": [
+              {
+                "Name": "Machine O",
+                "Children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "Machine k",
+    "Children": []
+  }
+]
