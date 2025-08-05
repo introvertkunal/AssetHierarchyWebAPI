@@ -1,29 +1,25 @@
-//    private static void PrintHierarchy(List<AssetNode> nodes, int level)
-//    {
-//        foreach (var node in nodes)
-//        {
-//            Console.WriteLine($"{new string(' ', level * 2)}- {node.Name}");
-//            PrintHierarchy(node.Children, level + 1);
-//        }
-//    }
-//}
 
+
+using AssetHierarchyWebAPI.Extensions;
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string format = builder.Configuration["StorageFormat"] ?? "json";
+builder.Services.AddAssetHierarchyService(builder.Configuration);
 
-if (format == "xml")
-    builder.Services.AddSingleton<IAssetHierarchyService, XmlAssetHierarchyService>();
-else
-    builder.Services.AddSingleton<IAssetHierarchyService, JsonAssetHierarchyService>();
+//string format = builder.Configuration["StorageFormat"] ?? "json";
+
+//if (format == "xml")
+//    builder.Services.AddSingleton<IAssetHierarchyService, XmlAssetHierarchyService>();
+//else
+//    builder.Services.AddSingleton<IAssetHierarchyService, JsonAssetHierarchyService>();
 
 builder.Services.AddControllers()
     .AddXmlSerializerFormatters(); 
 
 var app = builder.Build();
+app.UseMiddleware<AssetHierarchyWebAPI.RateLimitingMiddleware>();
 app.MapControllers();
 app.Run();
 

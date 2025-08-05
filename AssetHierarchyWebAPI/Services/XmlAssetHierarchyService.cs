@@ -88,22 +88,37 @@ namespace AssetHierarchyWebAPI.Services
         }
         private void LoadFromXml()
         {
-            if (File.Exists(FilePath_xml))
+            try
             {
-                var serializer = new XmlSerializer(typeof(List<AssetNode>));
-                using (var reader = new StreamReader(FilePath_xml))
+                if (File.Exists(FilePath_xml))
                 {
-                    _rootNodes = serializer.Deserialize(reader) as List<AssetNode> ?? new List<AssetNode>();
-                }
+                    var serializer = new XmlSerializer(typeof(List<AssetNode>));
+                    using (var reader = new StreamReader(FilePath_xml))
+                    {
+                        _rootNodes = serializer.Deserialize(reader) as List<AssetNode> ?? new List<AssetNode>();
+                    }
 
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading from XML file: {ex.Message}");
+                _rootNodes = new List<AssetNode>();
             }
         }
         private void SaveToXmlFile()
         {
-            var serializer = new XmlSerializer(typeof(List<AssetNode>));
-            using (var writer = new StreamWriter(FilePath_xml))
+            try
             {
-                serializer.Serialize(writer, _rootNodes);
+                var serializer = new XmlSerializer(typeof(List<AssetNode>));
+                using (var writer = new StreamWriter(FilePath_xml))
+                {
+                    serializer.Serialize(writer, _rootNodes);
+                }
+            }
+            catch (Exception ex)
+            {
+                               Console.WriteLine($"Error saving to XML file: {ex.Message}");
             }
         }
     }

@@ -8,10 +8,19 @@
         <Children>
           <AssetNode>
             <Name>Machine C</Name>
-            <Children />
+            <Children>
+              <AssetNode>
+                <Name>Machine D</Name>
+                <Children />
+              </AssetNode>
+            </Children>
           </AssetNode>
         </Children>
       </AssetNode>
     </Children>
+  </AssetNode>
+  <AssetNode>
+    <Name>Machine E</Name>
+    <Children />
   </AssetNode>
 </ArrayOfAssetNode>

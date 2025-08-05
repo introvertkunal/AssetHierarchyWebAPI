@@ -99,16 +99,30 @@ namespace AssetHierarchyWebAPI.Services
 
         private void SaveToJSONFIle()
         {
-            var json = JsonSerializer.Serialize(_rootNodes, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(FilePath_json, json);
+            try
+            {
+                var json = JsonSerializer.Serialize(_rootNodes, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(FilePath_json, json);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"Error saving to JSON file: {ex.Message}");
+            }
         }
 
         private void LoadFromJson()
         {
-            if (File.Exists(FilePath_json))
+            try
             {
-                var json = File.ReadAllText(FilePath_json);
-                _rootNodes = JsonSerializer.Deserialize<List<AssetNode>>(json) ?? new List<AssetNode>();
+                if (File.Exists(FilePath_json))
+                {
+                    var json = File.ReadAllText(FilePath_json);
+                    _rootNodes = JsonSerializer.Deserialize<List<AssetNode>>(json) ?? new List<AssetNode>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Loading from JSON file: {ex.Message}");
+                _rootNodes = new List<AssetNode>();
             }
         }
     }
