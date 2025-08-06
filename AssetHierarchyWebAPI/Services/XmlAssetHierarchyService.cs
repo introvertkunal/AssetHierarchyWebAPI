@@ -9,7 +9,7 @@ namespace AssetHierarchyWebAPI.Services
         private List<AssetNode> _rootNodes = new();
         private const string FilePath_xml = "asset_hierarchy.xml";
         public XmlAssetHierarchyService()
-        { 
+        {
             LoadFromXml();
         }
         public string addNode(string name, string parentName)
@@ -39,7 +39,7 @@ namespace AssetHierarchyWebAPI.Services
                     return $"Parent node '{parentName}' not found. Asset '{name}' not added.";
                 }
             }
-            
+
         }
         public string removeNode(string name)
         {
@@ -118,9 +118,34 @@ namespace AssetHierarchyWebAPI.Services
             }
             catch (Exception ex)
             {
-                               Console.WriteLine($"Error saving to XML file: {ex.Message}");
+                Console.WriteLine($"Error saving to XML file: {ex.Message}");
             }
         }
+
+        public void ReplaceJsonFile(IFormFile file)
+        {
+            try
+            {
+                using (var stream = new StreamReader(file.OpenReadStream()))
+                {
+                    var deserializeData = System.Text.Json.JsonSerializer.Deserialize<List<AssetNode>>(stream.ReadToEnd());
+                    if(deserializeData != null)
+                    {
+                        _rootNodes = deserializeData;
+                        SaveToXmlFile();
+                    }
+                    else
+                    {
+                        throw new ArgumentException("File is empty or not provided.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error replacing XML file: {ex.Message}");
+                throw new ArgumentException("File is empty or not provided.", ex);
+            }
+        }
+
     }
-    
 }

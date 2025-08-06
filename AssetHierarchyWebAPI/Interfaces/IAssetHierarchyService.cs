@@ -10,5 +10,7 @@ namespace AssetHierarchyWebAPI.Interfaces
         string removeNode(string name);
 
         List<AssetNode> GetHierarchy();
+
+        void ReplaceJsonFile(IFormFile file);
     }
 }

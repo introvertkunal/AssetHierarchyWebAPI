@@ -8,7 +8,7 @@ namespace AssetHierarchyWebAPI
     {
         private readonly RequestDelegate _next;
         private static DateTime _lastApiCallTime = DateTime.MinValue;
-        private static readonly TimeSpan _limitDuration = TimeSpan.FromMinutes(1); // 1 min between any action
+        private static readonly TimeSpan _limitDuration = TimeSpan.FromMinutes(1); 
 
         public RateLimitingMiddleware(RequestDelegate next)
         {

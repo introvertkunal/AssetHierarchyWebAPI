@@ -1,16 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ArrayOfAssetNode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <AssetNode>
-    <Name>Machine A</Name>
+    <Name>HeadOffice</Name>
     <Children>
       <AssetNode>
-        <Name>Machine B</Name>
+        <Name>FinanceDept</Name>
         <Children>
           <AssetNode>
-            <Name>Machine C</Name>
+            <Name>Accounts</Name>
             <Children>
               <AssetNode>
-                <Name>Machine D</Name>
+                <Name>Payroll</Name>
+                <Children />
+              </AssetNode>
+              <AssetNode>
+                <Name>Receivables</Name>
+                <Children />
+              </AssetNode>
+            </Children>
+          </AssetNode>
+          <AssetNode>
+            <Name>Audit</Name>
+            <Children />
+          </AssetNode>
+        </Children>
+      </AssetNode>
+      <AssetNode>
+        <Name>HRDept</Name>
+        <Children>
+          <AssetNode>
+            <Name>Recruitment</Name>
+            <Children />
+          </AssetNode>
+          <AssetNode>
+            <Name>EmployeeRelations</Name>
+            <Children />
+          </AssetNode>
+        </Children>
+      </AssetNode>
+    </Children>
+  </AssetNode>
+  <AssetNode>
+    <Name>ManufacturingUnit1</Name>
+    <Children>
+      <AssetNode>
+        <Name>AssemblyLine1</Name>
+        <Children>
+          <AssetNode>
+            <Name>ShiftA</Name>
+            <Children />
+          </AssetNode>
+          <AssetNode>
+            <Name>ShiftB</Name>
+            <Children />
+          </AssetNode>
+        </Children>
+      </AssetNode>
+      <AssetNode>
+        <Name>QualityControl</Name>
+        <Children>
+          <AssetNode>
+            <Name>TestingLab</Name>
+            <Children>
+              <AssetNode>
+                <Name>ChemicalTests</Name>
+                <Children />
+              </AssetNode>
+              <AssetNode>
+                <Name>MechanicalTests</Name>
                 <Children />
               </AssetNode>
             </Children>
@@ -20,7 +77,69 @@
     </Children>
   </AssetNode>
   <AssetNode>
-    <Name>Machine E</Name>
-    <Children />
+    <Name>ManufacturingUnit2</Name>
+    <Children>
+      <AssetNode>
+        <Name>Packaging</Name>
+        <Children>
+          <AssetNode>
+            <Name>Boxing</Name>
+            <Children />
+          </AssetNode>
+          <AssetNode>
+            <Name>Labeling</Name>
+            <Children />
+          </AssetNode>
+        </Children>
+      </AssetNode>
+      <AssetNode>
+        <Name>Maintenance</Name>
+        <Children>
+          <AssetNode>
+            <Name>Electrical</Name>
+            <Children />
+          </AssetNode>
+          <AssetNode>
+            <Name>Mechanical</Name>
+            <Children />
+          </AssetNode>
+        </Children>
+      </AssetNode>
+    </Children>
+  </AssetNode>
+  <AssetNode>
+    <Name>Logistics</Name>
+    <Children>
+      <AssetNode>
+        <Name>Warehouse1</Name>
+        <Children>
+          <AssetNode>
+            <Name>ColdStorage</Name>
+            <Children />
+          </AssetNode>
+          <AssetNode>
+            <Name>DryStorage</Name>
+            <Children />
+          </AssetNode>
+        </Children>
+      </AssetNode>
+      <AssetNode>
+        <Name>Warehouse2</Name>
+        <Children />
+      </AssetNode>
+      <AssetNode>
+        <Name>Transport</Name>
+        <Children>
+          <AssetNode>
+            <Name>FleetA</Name>
+            <Children />
+          </AssetNode>
+          <AssetNode>
+            <Name>FleetB</Name>
+            <Children />
+          </AssetNode>
+        </Children>
+      </AssetNode>
+    </Children>
   </AssetNode>
 </ArrayOfAssetNode>

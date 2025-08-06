@@ -97,6 +97,26 @@ namespace AssetHierarchyWebAPI.Services
             return false;
         }
 
+        public void ReplaceJsonFile(IFormFile file)
+        {
+            try
+            {
+
+                if (file == null || file.Length == 0)
+                {
+                    throw new ArgumentException("File is empty or not provided.");
+                }
+                using (var stream = new FileStream(FilePath_json, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+                LoadFromJson();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error replacing JSON file: {ex.Message}");
+            }
+        }
         private void SaveToJSONFIle()
         {
             try
