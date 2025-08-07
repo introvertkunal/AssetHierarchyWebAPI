@@ -14,6 +14,11 @@ namespace AssetHierarchyWebAPI.Services
         }
         public string addNode(string name, string parentName)
         {
+            var existingNode = FindNode(_rootNodes, name);
+            if (existingNode != null)
+            {
+                return $"Asset '{name}' already exists.";
+            }
             var newNode = new AssetNode
             {
                 Name = name,
