@@ -12,6 +12,21 @@ namespace AssetHierarchyWebAPI.Services
         {
             LoadFromXml();
         }
+
+        public bool searchNode(string name)
+        {
+            var foundNode = FindNode(_rootNodes, name);
+            if(foundNode != null)
+            {
+                return true;
+
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public string addNode(string name, string parentName)
         {
             var existingNode = FindNode(_rootNodes, name);
@@ -67,7 +82,7 @@ namespace AssetHierarchyWebAPI.Services
         {
             foreach (var node in nodes)
             {
-                if (node.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                if (node.Name.Equals(name))
                     return node;
                 var foundChild = FindNode(node.Children, name);
                 if (foundChild != null)
@@ -79,7 +94,7 @@ namespace AssetHierarchyWebAPI.Services
         {
             for (int i = 0; i < nodes.Count; i++)
             {
-                if (nodes[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                if (nodes[i].Name.Equals(name))
                 {
                     nodes.RemoveAt(i);
                     return true;

@@ -45,6 +45,24 @@ namespace AssetHierarchyWebAPI.Controllers
             return Ok(_service.GetHierarchy());
         }
 
+        [HttpGet("search")]
+        [LogMissingName]
+
+        public IActionResult search(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return BadRequest("Asset name cannot be empty.");
+            }
+            var exists = _service.searchNode(name);
+
+            if(!exists)
+            {
+                return NotFound($"Asset '{name}' not found.");
+            }
+            return Ok($"Asset '{name}' found in the hierarchy.");
+        }
+
         [HttpPost("replace-json")]
 
         public IActionResult ReplaceJsonFile(IFormFile file)

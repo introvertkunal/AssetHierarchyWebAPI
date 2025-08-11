@@ -19,18 +19,14 @@
             "Children": [
               {
                 "Name": "Machine X",
-                "Children": []
+                "Children": [
+                  {
+                    "Name": "Machine P",
+                    "Children": []
+                  }
+                ]
               }
             ]
-          }
-        ]
-      },
-      {
-        "Name": "HRDept",
-        "Children": [
-          {
-            "Name": "EmployeeRelations",
-            "Children": []
           }
         ]
       }
@@ -54,7 +50,21 @@
       },
       {
         "Name": "QualityControl",
-        "Children": []
+        "Children": [
+          {
+            "Name": "TestingLab",
+            "Children": [
+              {
+                "Name": "ChemicalTests",
+                "Children": []
+              },
+              {
+                "Name": "MechanicalTests",
+                "Children": []
+              }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -93,10 +103,6 @@
     "Name": "Logistics",
     "Children": [
       {
-        "Name": "Warehouse2",
-        "Children": []
-      },
-      {
         "Name": "Transport",
         "Children": [
           {
@@ -110,13 +116,5 @@
         ]
       }
     ]
-  },
-  {
-    "Name": "Kunal ",
-    "Children": []
-  },
-  {
-    "Name": "Raj",
-    "Children": []
   }
 ]

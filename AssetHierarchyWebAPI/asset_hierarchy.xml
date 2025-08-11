@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ArrayOfAssetNode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <AssetNode>
-    <Name>HeadOffice</Name>
+    <Name>Machine A</Name>
     <Children>
       <AssetNode>
-        <Name>FinanceDept</Name>
+        <Name>Machine B</Name>
         <Children>
           <AssetNode>
-            <Name>Accounts</Name>
+            <Name>Machine C</Name>
             <Children>
-              <AssetNode>
-                <Name>Payroll</Name>
-                <Children />
-              </AssetNode>
               <AssetNode>
                 <Name>Receivables</Name>
                 <Children />
@@ -28,10 +24,6 @@
       <AssetNode>
         <Name>HRDept</Name>
         <Children>
-          <AssetNode>
-            <Name>Recruitment</Name>
-            <Children />
-          </AssetNode>
           <AssetNode>
             <Name>EmployeeRelations</Name>
             <Children />
@@ -110,19 +102,6 @@
   <AssetNode>
     <Name>Logistics</Name>
     <Children>
-      <AssetNode>
-        <Name>Warehouse1</Name>
-        <Children>
-          <AssetNode>
-            <Name>ColdStorage</Name>
-            <Children />
-          </AssetNode>
-          <AssetNode>
-            <Name>DryStorage</Name>
-            <Children />
-          </AssetNode>
-        </Children>
-      </AssetNode>
       <AssetNode>
         <Name>Warehouse2</Name>
         <Children />

@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace AssetHierarchyWebAPI
+namespace AssetHierarchyWebAPI.Middlewares
 {
     public class RateLimitingMiddleware
     {
@@ -21,13 +21,13 @@ namespace AssetHierarchyWebAPI
             var path = context.Request.Path.Value?.ToLowerInvariant();
 
             bool isRateLimitedEndpoint =
-                (method == "POST" && path == "/api/asset/add") ||
-                (method == "DELETE" && path == "/api/asset/remove");
+                method == "POST" && path == "/api/asset/add" ||
+                method == "DELETE" && path == "/api/asset/remove";
 
             if (isRateLimitedEndpoint)
             {
                 var now = DateTime.UtcNow;
-                if ((now - _lastApiCallTime) < _limitDuration)
+                if (now - _lastApiCallTime < _limitDuration)
                 {
                     var waitTime = _limitDuration - (now - _lastApiCallTime);
                     context.Response.StatusCode = StatusCodes.Status429TooManyRequests;

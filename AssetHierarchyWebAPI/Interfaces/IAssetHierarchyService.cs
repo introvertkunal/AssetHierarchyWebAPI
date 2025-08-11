@@ -12,5 +12,7 @@ namespace AssetHierarchyWebAPI.Interfaces
         List<AssetNode> GetHierarchy();
 
         void ReplaceJsonFile(IFormFile file);
+
+         bool searchNode(string name);
     }
 }

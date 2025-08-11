@@ -11,7 +11,7 @@ builder.Services.AddCors(options =>
         options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173", "https://assethierarchyfrontend.vercel.app")
+            policy.WithOrigins("http://localhost:5173", "https://asset-hierarchy-frontend.vercel.app")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         
@@ -33,7 +33,8 @@ builder.Services.AddControllers()
 
 var app = builder.Build();
 app.UseCors("AllowReactApp");
-app.UseMiddleware<AssetHierarchyWebAPI.RateLimitingMiddleware>();
+//app.UseMiddleware<AssetHierarchyWebAPI.RateLimitingMiddleware>();
+app.UseMiddleware<AssetHierarchyWebAPI.Middlewares.MissingNameLoggingMiddleware>();
 app.MapControllers();
 app.Run();
 
