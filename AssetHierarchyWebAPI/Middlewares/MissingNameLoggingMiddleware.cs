@@ -27,19 +27,19 @@
 
             string name = context.Request.Query["name"];
 
-           
+
 
             await _next(context);
 
-            if(context.Response.StatusCode == StatusCodes.Status404NotFound)
+            if (context.Response.StatusCode == StatusCodes.Status404NotFound)
             {
                 _Logger.LogWarning($"{System.DateTime.Now} - Asset is not found in the request: {name}");
 
-                var logEntry = $"{System.DateTime.Now} - Asset not found : {name}{System.Environment.NewLine}";
-                await File.AppendAllTextAsync(_logFilePath, logEntry);
-                
+                //var logEntry = $"{System.DateTime.Now} - Asset not found : {name}{System.Environment.NewLine}";
+                //await File.AppendAllTextAsync(_logFilePath, logEntry);
+
             }
-            
+
 
         }
     }

@@ -1,5 +1,7 @@
 ﻿using AssetHierarchyWebAPI.Interfaces;
+using AssetHierarchyWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace AssetHierarchyWebAPI.Controllers
 {
@@ -65,20 +67,29 @@ namespace AssetHierarchyWebAPI.Controllers
 
         [HttpPost("replace-json")]
 
-        public IActionResult ReplaceJsonFile(IFormFile file)
+       
+
+        public async Task<IActionResult> ReplaceJsonFileAsync(IFormFile file)
         {
+             
             if(file == null || file.Length == 0)
             {
                 return BadRequest("File is empty or not provided.");
             }
             try
             {
-                _service.ReplaceJsonFile(file);
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+                using var reader = new StreamReader(stream);
+                var json = await reader.ReadToEndAsync();
+                var nodes = JsonSerializer.Deserialize<List<AssetNode>>(json);
+                await _service.ReplaceJsonFileAsync(file);
                 return Ok("JSON file Uploaded successfully.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return BadRequest("File not in Correct Format");
             }
         }
 

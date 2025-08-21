@@ -3,6 +3,7 @@
 using AssetHierarchyWebAPI.Extensions;
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,12 +22,11 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddAssetHierarchyService(builder.Configuration);
 
-//string format = builder.Configuration["StorageFormat"] ?? "json";
-
-//if (format == "xml")
-//    builder.Services.AddSingleton<IAssetHierarchyService, XmlAssetHierarchyService>();
-//else
-//    builder.Services.AddSingleton<IAssetHierarchyService, JsonAssetHierarchyService>();
+builder.Host.UseSerilog((context,config) =>
+{
+    config.WriteTo.Console()
+        .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day);
+});
 
 builder.Services.AddControllers()
     .AddXmlSerializerFormatters(); 

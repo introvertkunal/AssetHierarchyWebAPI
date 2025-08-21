@@ -1,168 +1,177 @@
 ﻿using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
+using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Xml.Serialization;
 
 namespace AssetHierarchyWebAPI.Services
 {
     public class JsonAssetHierarchyService : IAssetHierarchyService
     {
-        private List<AssetNode> _rootNodes = new();
+        private readonly List<AssetNode> _rootNodes = new();
+        private readonly ConcurrentDictionary<string, AssetNode> _nodeMap = new(StringComparer.OrdinalIgnoreCase);
         private const string FilePath_json = "asset_hierarchy.json";
+        private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+        private bool _isDirty = false; 
 
         public JsonAssetHierarchyService()
-        { 
-                LoadFromJson();
-                
+        {
+            LoadFromJsonAsync().GetAwaiter().GetResult();
         }
 
-        public bool searchNode(string name)
-        {
-            var foundNode = FindNode(_rootNodes, name);
-            if( foundNode!= null)
-            {
-                return true;
-            }
-            else
-            {
-                return false; 
-            }
-        }
+        
+        public bool searchNode(string name) => _nodeMap.ContainsKey(name);
 
         public string addNode(string name, string parentName)
         {
-            var existingNode = FindNode(_rootNodes, name);
-            Console.WriteLine(existingNode);
-            if(existingNode != null)
-            {
+            if (_nodeMap.ContainsKey(name))
                 return $"Asset '{name}' already exists.";
-            }
 
-            var newNode = new AssetNode
-            {
-                Name = name,
-            };
+            var newNode = new AssetNode { Name = name };
 
-            if (string.IsNullOrEmpty(parentName))
+            if (string.IsNullOrWhiteSpace(parentName))
             {
                 _rootNodes.Add(newNode);
-                SaveToJSONFIle();
-                return "Asset added successfully as a root node.";
+            }
+            else if (_nodeMap.TryGetValue(parentName, out var parent))
+            {
+                parent.Children.Add(newNode);
             }
             else
             {
-                var parent = FindNode(_rootNodes, parentName);
-                if (parent != null)
-                {
-                    parent.Children.Add(newNode);
-                    SaveToJSONFIle();
-                    return $"Asset '{name}' added successfully under parent '{parentName}'.";
-                }
-                else
-                {
-                    return $"Parent node '{parentName}' not found. Asset '{name}' not added.";
-                }
+                return $"Parent node '{parentName}' not found. Asset '{name}' not added.";
             }
-           
+
+            _nodeMap[name] = newNode;
+            _isDirty = true;
+            return $"Asset '{name}' added successfully.";
         }
 
         public string removeNode(string name)
         {
-            if(RemoveRecursive(_rootNodes, name))
+            if (!_nodeMap.ContainsKey(name))
+                return $"Asset '{name}' not found.";
+
+            if (RemoveRecursive(_rootNodes, name))
             {
-                SaveToJSONFIle();
+                _nodeMap.TryRemove(name, out _);
+                _isDirty = true;
                 return $"Asset '{name}' removed successfully.";
             }
-            else
-            {
-                return $"Asset '{name}' not found.";
-            }   
+            return $"Asset '{name}' not found.";
         }
 
-        public List<AssetNode> GetHierarchy()
-        {
-            return _rootNodes;
-        }
+        public List<AssetNode> GetHierarchy() => _rootNodes;
 
-        private AssetNode FindNode(List<AssetNode> nodes, string name)
+       
+        public async Task ReplaceJsonFileAsync(IFormFile file)
         {
-            foreach (var node in nodes)
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("File is empty or not provided.");
+
+            string fullPath = Path.GetFullPath(FilePath_json);
+            string directory = Path.GetDirectoryName(fullPath) ?? AppContext.BaseDirectory;
+            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fullPath);
+            string extension = Path.GetExtension(fullPath);
+
+            
+            if (File.Exists(fullPath))
             {
-                if (node.Name.Equals(name))
-                    return node;
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+                string backupFilePath = Path.Combine(directory, $"{fileNameWithoutExt}_{timestamp}{extension}");
+                File.Copy(fullPath, backupFilePath);
 
-                var found = FindNode(node.Children, name);
-                if (found != null)
-                    return found;
+                CleanupOldBackups(directory, fileNameWithoutExt, extension, keepLast: 5);
             }
 
-            return null;
+            // Replace main file
+            using (var stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            await LoadFromJsonAsync();
+        }
+
+        // Save only when needed
+        public async Task SaveChangesAsync()
+        {
+            if (!_isDirty) return; 
+            try
+            {
+                var json = JsonSerializer.Serialize(_rootNodes, _jsonOptions);
+                await File.WriteAllTextAsync(FilePath_json, json);
+                _isDirty = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving to JSON file: {ex.Message}");
+            }
+        }
+
+        private async Task LoadFromJsonAsync()
+        {
+            try
+            {
+                if (File.Exists(FilePath_json))
+                {
+                    var json = await File.ReadAllTextAsync(FilePath_json);
+                    var nodes = JsonSerializer.Deserialize<List<AssetNode>>(json) ?? new List<AssetNode>();
+                    
+                   
+                    _rootNodes.Clear();
+                    _rootNodes.AddRange(nodes);
+                    BuildNodeMap();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Loading from JSON file: {ex.Message}");
+                
+               
+                
+            }
+        }
+
+      
+
+        private void BuildNodeMap()
+        {
+            _nodeMap.Clear();
+            foreach (var root in _rootNodes)
+                AddToMapRecursive(root);
+        }
+
+        private void AddToMapRecursive(AssetNode node)
+        {
+            _nodeMap[node.Name] = node;
+            foreach (var child in node.Children)
+                AddToMapRecursive(child);
         }
 
         private bool RemoveRecursive(List<AssetNode> nodes, string name)
         {
             for (int i = 0; i < nodes.Count; i++)
             {
-                if (nodes[i].Name.Equals(name))
+                if (nodes[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
                     nodes.RemoveAt(i);
                     return true;
                 }
                 if (RemoveRecursive(nodes[i].Children, name))
-                {
                     return true;
-                }
             }
-
             return false;
         }
 
-        public void ReplaceJsonFile(IFormFile file)
+        private void CleanupOldBackups(string directory, string baseName, string extension, int keepLast)
         {
-            try
-            {
+            var backups = Directory.GetFiles(directory, $"{baseName}_*{extension}")
+                .OrderByDescending(f => File.GetCreationTime(f))
+                .ToList();
 
-                if (file == null || file.Length == 0)
-                {
-                    throw new ArgumentException("File is empty or not provided.");
-                }
-                using (var stream = new FileStream(FilePath_json, FileMode.Create))
-                {
-                    file.CopyTo(stream);
-                }
-                LoadFromJson();
-            }
-            catch (Exception ex)
+            foreach (var oldFile in backups.Skip(keepLast))
             {
-                Console.WriteLine($"Error replacing JSON file: {ex.Message}");
-            }
-        }
-        private void SaveToJSONFIle()
-        {
-            try
-            {
-                var json = JsonSerializer.Serialize(_rootNodes, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(FilePath_json, json);
-            }
-            catch (Exception ex) {
-                Console.WriteLine($"Error saving to JSON file: {ex.Message}");
-            }
-        }
-
-        private void LoadFromJson()
-        {
-            try
-            {
-                if (File.Exists(FilePath_json))
-                {
-                    var json = File.ReadAllText(FilePath_json);
-                    _rootNodes = JsonSerializer.Deserialize<List<AssetNode>>(json) ?? new List<AssetNode>();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error Loading from JSON file: {ex.Message}");
-                _rootNodes = new List<AssetNode>();
+                try { File.Delete(oldFile); } catch { /* ignore */ }
             }
         }
     }

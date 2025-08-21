@@ -16,7 +16,7 @@ namespace AssetHierarchyWebAPI.Services
         public bool searchNode(string name)
         {
             var foundNode = FindNode(_rootNodes, name);
-            if(foundNode != null)
+            if (foundNode != null)
             {
                 return true;
 
@@ -142,14 +142,14 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
-        public void ReplaceJsonFile(IFormFile file)
+        public async Task ReplaceJsonFileAsync(IFormFile file)
         {
             try
             {
                 using (var stream = new StreamReader(file.OpenReadStream()))
                 {
                     var deserializeData = System.Text.Json.JsonSerializer.Deserialize<List<AssetNode>>(stream.ReadToEnd());
-                    if(deserializeData != null)
+                    if (deserializeData != null)
                     {
                         _rootNodes = deserializeData;
                         SaveToXmlFile();
