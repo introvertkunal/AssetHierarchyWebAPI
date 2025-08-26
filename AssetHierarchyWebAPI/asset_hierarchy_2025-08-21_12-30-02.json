@@ -6,7 +6,7 @@
         "Name": "Machine B",
         "Children": [
           {
-            "Name": "Accounts",
+            "Name": "Machine C",
             "Children": [
               {
                 "Name": "Payroll",
@@ -23,7 +23,12 @@
             "Children": [
               {
                 "Name": "Machine X",
-                "Children": []
+                "Children": [
+                  {
+                    "Name": "Kunal",
+                    "Children": []
+                  }
+                ]
               }
             ]
           }

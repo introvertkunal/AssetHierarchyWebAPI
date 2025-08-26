@@ -1,121 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ArrayOfAssetNode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <AssetNode>
-    <Name>Machine A</Name>
+    <Id>1</Id>
+    <Name>Server</Name>
+    <ParentId xsi:nil="true" />
     <Children>
       <AssetNode>
-        <Name>Machine B</Name>
+        <Id>2</Id>
+        <Name>Machine ABC</Name>
+        <ParentId>1</ParentId>
         <Children>
           <AssetNode>
-            <Name>Machine C</Name>
+            <Id>7</Id>
+            <Name>Lathe</Name>
+            <ParentId>2</ParentId>
             <Children>
               <AssetNode>
-                <Name>Receivables</Name>
+                <Id>5</Id>
+                <Name>Machine ui</Name>
+                <ParentId>7</ParentId>
+                <Children />
+              </AssetNode>
+              <AssetNode>
+                <Id>6</Id>
+                <Name>Machine new</Name>
+                <ParentId>7</ParentId>
                 <Children />
               </AssetNode>
             </Children>
-          </AssetNode>
-          <AssetNode>
-            <Name>Audit</Name>
-            <Children />
-          </AssetNode>
-        </Children>
-      </AssetNode>
-      <AssetNode>
-        <Name>HRDept</Name>
-        <Children>
-          <AssetNode>
-            <Name>EmployeeRelations</Name>
-            <Children />
-          </AssetNode>
-        </Children>
-      </AssetNode>
-    </Children>
-  </AssetNode>
-  <AssetNode>
-    <Name>ManufacturingUnit1</Name>
-    <Children>
-      <AssetNode>
-        <Name>AssemblyLine1</Name>
-        <Children>
-          <AssetNode>
-            <Name>ShiftA</Name>
-            <Children />
-          </AssetNode>
-          <AssetNode>
-            <Name>ShiftB</Name>
-            <Children />
-          </AssetNode>
-        </Children>
-      </AssetNode>
-      <AssetNode>
-        <Name>QualityControl</Name>
-        <Children>
-          <AssetNode>
-            <Name>TestingLab</Name>
-            <Children>
-              <AssetNode>
-                <Name>ChemicalTests</Name>
-                <Children />
-              </AssetNode>
-              <AssetNode>
-                <Name>MechanicalTests</Name>
-                <Children />
-              </AssetNode>
-            </Children>
-          </AssetNode>
-        </Children>
-      </AssetNode>
-    </Children>
-  </AssetNode>
-  <AssetNode>
-    <Name>ManufacturingUnit2</Name>
-    <Children>
-      <AssetNode>
-        <Name>Packaging</Name>
-        <Children>
-          <AssetNode>
-            <Name>Boxing</Name>
-            <Children />
-          </AssetNode>
-          <AssetNode>
-            <Name>Labeling</Name>
-            <Children />
-          </AssetNode>
-        </Children>
-      </AssetNode>
-      <AssetNode>
-        <Name>Maintenance</Name>
-        <Children>
-          <AssetNode>
-            <Name>Electrical</Name>
-            <Children />
-          </AssetNode>
-          <AssetNode>
-            <Name>Mechanical</Name>
-            <Children />
-          </AssetNode>
-        </Children>
-      </AssetNode>
-    </Children>
-  </AssetNode>
-  <AssetNode>
-    <Name>Logistics</Name>
-    <Children>
-      <AssetNode>
-        <Name>Warehouse2</Name>
-        <Children />
-      </AssetNode>
-      <AssetNode>
-        <Name>Transport</Name>
-        <Children>
-          <AssetNode>
-            <Name>FleetA</Name>
-            <Children />
-          </AssetNode>
-          <AssetNode>
-            <Name>FleetB</Name>
-            <Children />
           </AssetNode>
         </Children>
       </AssetNode>

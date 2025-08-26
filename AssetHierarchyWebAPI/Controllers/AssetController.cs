@@ -16,66 +16,85 @@ namespace AssetHierarchyWebAPI.Controllers
             _service = service;
         }
 
+        // Add Node
         [HttpPost("add")]
-
-        public IActionResult Add(string name, string parentName)
+        public IActionResult Add(string name, int? parentId)
         {
             if (string.IsNullOrEmpty(name))
-            {
                 return BadRequest("Asset name cannot be empty.");
-            }
-            return Ok(_service.addNode(name, parentName));
+
+            var result = _service.AddNode(name, parentId);
+            return Ok(result);
         }
 
+        // Remove Node 
         [HttpDelete("remove")]
-
-        public IActionResult Remove(string name)
+        public IActionResult Remove(int id)
         {
-            if (string.IsNullOrEmpty(name))
+            if(id < 1)
             {
-                return BadRequest("Asset name cannot be empty.");
+                return BadRequest("Provide a Valid Asset ID");
             }
-            
-            return Ok(_service.removeNode(name));
+            var result = _service.RemoveNode(id);
+            return Ok(result);
         }
 
+        // Get full hierarchy
         [HttpGet("hierarchy")]
-
         public IActionResult GetHierarchy()
         {
-            
             return Ok(_service.GetHierarchy());
         }
 
-        [HttpGet("search")]
+        // Search node
         [LogMissingName]
-
-        public IActionResult search(string name)
+        [HttpGet("search")]
+        public IActionResult Search(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                return BadRequest("Asset name cannot be empty.");
-            }
-            var exists = _service.searchNode(name);
 
-            if(!exists)
-            {
+            if (string.IsNullOrEmpty(name))
+                return BadRequest("Asset name cannot be empty.");
+
+            var node = _service.SearchNode(name);
+
+            if (node == null)
                 return NotFound($"Asset '{name}' not found.");
-            }
-            return Ok($"Asset '{name}' found in the hierarchy.");
+
+            return Ok(new
+            {
+                Id = node.Id,
+                Name = node.NodeName,
+                ParentName = node.ParentName,
+                Children = node.Children
+            });
         }
 
-        [HttpPost("replace-json")]
-
-       
-
-        public async Task<IActionResult> ReplaceJsonFileAsync(IFormFile file)
+        // Update Node (rename asset)
+        [HttpPut("update")]
+        public IActionResult Update(int id, string newName)
         {
-             
-            if(file == null || file.Length == 0)
-            {
+            if (string.IsNullOrEmpty(newName))
+                return BadRequest("New asset name cannot be empty.");
+
+            var result = _service.UpdateNode(id, newName);
+            return Ok(result);
+        }
+
+        // Reorder Node (move under new parent)
+        [HttpPut("reorder")]
+        public IActionResult Reorder(int id, int? newParentId)
+        {
+            var result = _service.ReorderNode(id, newParentId);
+            return Ok(result);
+        }
+
+        // Replace with uploaded JSON/Xml file
+        [HttpPost("replace-file")]
+        public async Task<IActionResult> ReplaceFileAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
                 return BadRequest("File is empty or not provided.");
-            }
+
             try
             {
                 using var stream = new MemoryStream();
@@ -85,16 +104,16 @@ namespace AssetHierarchyWebAPI.Controllers
                 var json = await reader.ReadToEndAsync();
                 var nodes = JsonSerializer.Deserialize<List<AssetNode>>(json);
                 await _service.ReplaceJsonFileAsync(file);
-                return Ok("JSON file Uploaded successfully.");
+                return Ok("File uploaded and replaced successfully.");
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest("File not in Correct Format");
+                return BadRequest("File not in correct format.");
             }
         }
 
+        // Download current persistence file
         [HttpGet("downloadFile")]
-
         public IActionResult DownloadFile([FromServices] IConfiguration configuration)
         {
             string format = configuration["storageFormat"] ?? "json";
@@ -106,16 +125,10 @@ namespace AssetHierarchyWebAPI.Controllers
             string filePath = Path.Combine(folderPath, fileName);
 
             if (!System.IO.File.Exists(filePath))
-            {
                 return NotFound($"File '{fileName}' not found.");
-            }
 
             var fileBytes = System.IO.File.ReadAllBytes(filePath);
-
             return File(fileBytes, contentType, fileName);
         }
-
-
-
     }
 }

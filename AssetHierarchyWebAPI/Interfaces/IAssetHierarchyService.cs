@@ -5,14 +5,18 @@ namespace AssetHierarchyWebAPI.Interfaces
 {
     public interface IAssetHierarchyService
     {
-        string addNode(string name, string parentName);
+        string AddNode(string name, int? parentId);
 
-        string removeNode(string name);
+        string RemoveNode(int id);
 
         List<AssetNode> GetHierarchy();
 
         Task ReplaceJsonFileAsync(IFormFile file);
 
-         bool searchNode(string name);
+        AssetSearchResult SearchNode(string name);
+
+        string UpdateNode(int id, string newName);
+
+        string ReorderNode(int id, int? newParentId);
     }
 }

@@ -1,4 +1,10 @@
-﻿namespace AssetHierarchyWebAPI.Extensions
+﻿using AssetHierarchyWebAPI.Context;
+using AssetHierarchyWebAPI.Controllers;
+using AssetHierarchyWebAPI.Interfaces;
+using AssetHierarchyWebAPI.Services;
+using Microsoft.EntityFrameworkCore;
+
+namespace AssetHierarchyWebAPI.Extensions
 {
     public static class ServiceCollectionExtensions
     {
@@ -8,11 +14,16 @@
 
             if(format == "xml")
             {
-                services.AddSingleton<Interfaces.IAssetHierarchyService, Services.XmlAssetHierarchyService>();
+                services.AddScoped<Interfaces.IAssetHierarchyService, Services.XmlAssetHierarchyService>();
             }
-            else
+            else if(format == "json")
             {
-                services.AddSingleton<Interfaces.IAssetHierarchyService, Services.JsonAssetHierarchyService>();      
+                services.AddScoped<Interfaces.IAssetHierarchyService, Services.JsonAssetHierarchyService>();      
+            }
+            else if(format == "db")
+            {
+                services.AddScoped<IAssetHierarchyService, DBAssetHierarchyService >();
+                services.AddDbContext<AssetContext>(options => options.UseSqlServer(configuration.GetConnectionString("AssetConnStr")));
             }
 
             return services;
