@@ -14,11 +14,14 @@ namespace AssetHierarchyWebAPI.Services
         private bool _isDirty = false;
         private int _idCounter = 1; 
 
+
+        // Constructor Called Load From JSON Function
         public JsonAssetHierarchyService()
         {
             LoadFromJsonAsync().GetAwaiter().GetResult();
         }
 
+        // Method for Search Asset
         public AssetSearchResult SearchNode(string name)
         {
             var node = _nodeMap.Values.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -37,6 +40,7 @@ namespace AssetHierarchyWebAPI.Services
             };
         }
 
+        // Method for Add Asset
         public string AddNode(string name, int? parentId)
         {
             if (_nodeMap.Values.Any(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
@@ -68,6 +72,7 @@ namespace AssetHierarchyWebAPI.Services
             return $"Asset '{name}' added successfully.";
         }
 
+        // Method for Remove Asset
         public string RemoveNode(int id)
         {
             if (!_nodeMap.ContainsKey(id))
@@ -83,8 +88,10 @@ namespace AssetHierarchyWebAPI.Services
             return $"Asset with Id {id} not found.";
         }
 
+        // Method that Return Tree Hierarchy
         public List<AssetNode> GetHierarchy() => _rootNodes;
 
+        // Method to Load data from Uploaded JSON File
         public async Task ReplaceJsonFileAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -112,6 +119,7 @@ namespace AssetHierarchyWebAPI.Services
             await LoadFromJsonAsync();
         }
 
+        // Method used for Saved changes in JSON File
         public async Task SaveChangesAsync()
         {
             if (!_isDirty) return;
@@ -127,6 +135,8 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
+
+        // Method Used to Load data From Existing JSON File to RootNode
         private async Task LoadFromJsonAsync()
         {
             try
@@ -147,6 +157,8 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
+
+        // Dictionary Created to Map Asset to reduce searching Complexity
         private void BuildNodeMap()
         {
             _nodeMap.Clear();
@@ -164,6 +176,7 @@ namespace AssetHierarchyWebAPI.Services
                 AddToMapRecursive(child);
         }
 
+        // Remove Method Called this Method to Recursive delete Children
         private bool RemoveRecursive(List<AssetNode> nodes, int id)
         {
             for (int i = 0; i < nodes.Count; i++)
@@ -179,6 +192,7 @@ namespace AssetHierarchyWebAPI.Services
             return false;
         }
 
+        // It used Delete Old Files
         private void CleanupOldBackups(string directory, string baseName, string extension, int keepLast)
         {
             var backups = Directory.GetFiles(directory, $"{baseName}_*{extension}")
@@ -187,12 +201,18 @@ namespace AssetHierarchyWebAPI.Services
 
             foreach (var oldFile in backups.Skip(keepLast))
             {
-                try { File.Delete(oldFile); } catch { /* ignore */ }
+                try { File.Delete(oldFile); }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error Occur while deleting file: {ex.Message}");
+                }
+
             }
         }
 
-        // ----------- New Methods --------------
-
+        
+        // Method to rename Asset Name 
         public string UpdateNode(int id, string newName)
         {
             if (!_nodeMap.TryGetValue(id, out var node))
@@ -204,6 +224,8 @@ namespace AssetHierarchyWebAPI.Services
             return $"Asset Id {id} renamed to '{newName}'.";
         }
 
+
+        // Method to change their Order
         public string ReorderNode(int id, int? newParentId)
         {
             if (!_nodeMap.TryGetValue(id, out var node))

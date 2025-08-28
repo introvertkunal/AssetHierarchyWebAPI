@@ -2,17 +2,21 @@
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace AssetHierarchyWebAPI.Services
 {
     public class DBAssetHierarchyService : IAssetHierarchyService
     {
         private readonly AssetContext _context;
+
+        private const string FilePath_json = "asset_hierarchy.json";
         public DBAssetHierarchyService(AssetContext Context)
         {
             _context = Context;
         }
 
+        // Method for Add Asset
         public string AddNode(string name, int? parentId)
         {
             if(_context.AssetHierarchy.Any(n => n.Name == name))
@@ -32,14 +36,30 @@ namespace AssetHierarchyWebAPI.Services
             return $"Asset {name} is added Successfully";
         }
 
+        // This Return Asset Hierarchy
         public List<AssetNode> GetHierarchy()
         {
-            return _context.AssetHierarchy
-                      .Where(n => n.ParentId == null)
-                      .Include(n => n.Children)
-                      .ToList();
+            var allNodes = _context.AssetHierarchy.ToList();
+
+            return BuildHierarchy(allNodes, null);
         }
 
+        // Used to Return Asset with depth Hierarchy
+        private List<AssetNode> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
+        {
+            return allNodes
+                .Where(n => n.ParentId == parentId)
+                .Select(n => new AssetNode
+                {
+                    Id = n.Id,
+                    Name = n.Name,
+                    ParentId = n.ParentId,
+                    Children = BuildHierarchy(allNodes, n.Id)
+                })
+                .ToList();
+        }
+
+        // Method for Remove Asset
         public string RemoveNode(int id)
         {
             var node = _context.AssetHierarchy
@@ -57,6 +77,7 @@ namespace AssetHierarchyWebAPI.Services
             return $"Asset {node.Name} Removed Successfully";
         }
 
+        // If Asset have Children then Delete Children First
         private void DeleteChildren(AssetNode node)
         {
             if(node.Children != null && node.Children.Any())
@@ -70,16 +91,137 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
+        // Method for Rename Asset Name
+        public string UpdateNode(int id, string newName)
+        {
+            var node = _context.AssetHierarchy.FirstOrDefault(n => n.Id == id);
+
+            if (node == null)
+                return $"Asset is not Exist";
+
+            var prevName = node.Name;
+            node.Name = newName;
+
+            _context.SaveChanges();
+
+            return $"{prevName} is renamed to {node.Name} ";
+
+        }
+
+        // Method that Reorder Hierarchy
         public string ReorderNode(int id, int? newParentId)
         {
-            throw new NotImplementedException();
+           
+            var node = _context.AssetHierarchy.FirstOrDefault(n => n.Id == id);
+            if (node == null)
+                return "Asset does not exist";
+
+     
+            if (newParentId != null)
+            {
+                if (!_context.AssetHierarchy.Any(n => n.Id == newParentId))
+                    return "New parent does not exist";
+
+         
+                if (id == newParentId)
+                    return "A node cannot be its own parent";
+
+                
+                if (IsDescendant(id, newParentId.Value))
+                    return "Invalid move: cannot assign descendant as parent";
+            }
+
+            node.ParentId = newParentId;
+            _context.SaveChanges();
+
+            return "Node reordered successfully";
         }
 
-        public Task ReplaceJsonFileAsync(IFormFile file)
+        // Prevent cycles (child cannot become parent of its ancestor)
+        private bool IsDescendant(int nodeId, int newParentId)
         {
-            throw new NotImplementedException();
+            var parent = _context.AssetHierarchy.FirstOrDefault(n => n.Id == newParentId);
+            while (parent != null)
+            {
+                if (parent.ParentId == nodeId)
+                    return true;
+
+                parent = _context.AssetHierarchy.FirstOrDefault(n => n.Id == parent.ParentId);
+            }
+            return false;
         }
 
+
+        // Method for Version and Load Data from JSON File
+        public async Task ReplaceJsonFileAsync(IFormFile file)
+        {
+            string fullPath = Path.GetFullPath(FilePath_json);
+            string directory = Path.GetDirectoryName(fullPath) ?? AppContext.BaseDirectory;
+            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fullPath);
+            string extension = Path.GetExtension(fullPath);
+
+            if (File.Exists(fullPath))
+            {
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+                string backupFilePath = Path.Combine(directory, $"{fileNameWithoutExt}_{timestamp}{extension}");
+                File.Copy(fullPath, backupFilePath);
+
+                CleanupOldBackups(directory, fileNameWithoutExt, extension, keepLast: 5);
+            }
+
+            using (var stream1 = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+            {
+                await file.CopyToAsync(stream1);
+            }
+
+            using var stream = new StreamReader(file.OpenReadStream());
+            var json = await stream.ReadToEndAsync();
+            var nodes = JsonSerializer.Deserialize<List<AssetNode>>(json) ?? new List<AssetNode>();
+
+            // Clear existing
+            _context.AssetHierarchy.RemoveRange(_context.AssetHierarchy);
+            await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetHierarchy', RESEED, 0)");
+
+            await _context.SaveChangesAsync();
+
+            // Dictionary to map old IDs from JSON → new IDs from DB
+            var idMap = new Dictionary<int, int>();
+
+            
+            foreach (var node in nodes.Where(n => n.ParentId == null))
+            {
+                await InsertNodeRecursive(node, null, idMap);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task InsertNodeRecursive(AssetNode node, int? newParentId, Dictionary<int, int> idMap)
+        {
+            
+            var newNode = new AssetNode
+            {
+                Name = node.Name,
+                ParentId = newParentId
+            };
+
+            _context.AssetHierarchy.Add(newNode);
+            await _context.SaveChangesAsync();
+
+            
+            idMap[node.Id] = newNode.Id;
+
+         
+            if (node.Children != null)
+            {
+                foreach (var child in node.Children)
+                {
+                    await InsertNodeRecursive(child, newNode.Id, idMap);
+                }
+            }
+        }
+
+        // Method for Search Asset
         public AssetSearchResult SearchNode(string name)
         {
             var node = _context.AssetHierarchy
@@ -102,22 +244,22 @@ namespace AssetHierarchyWebAPI.Services
             };
         }
 
-        public string UpdateNode(int id, string newName)
+        private void CleanupOldBackups(string directory, string baseName, string extension, int keepLast)
         {
-            var node = _context.AssetHierarchy.FirstOrDefault(n => n.Id == id);
+            var backups = Directory.GetFiles(directory, $"{baseName}_*{extension}")
+                .OrderByDescending(f => File.GetCreationTime(f))
+                .ToList();
 
-            if (node == null)
-                return $"Asset is not Exist";
-
-            var prevName = node.Name;
-            node.Name = newName;
-
-            _context.SaveChanges();
-
-            return $"{prevName} is renamed to {node.Name} ";
-
-
-
+            foreach (var oldFile in backups.Skip(keepLast))
+            {
+                try { File.Delete(oldFile); } 
+                
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"Error Occur while deleting file: {ex.Message}");
+                }
+            }
         }
+
     }
 }

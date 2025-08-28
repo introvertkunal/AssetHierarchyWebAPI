@@ -1,23 +1,120 @@
 [
   {
     "Id": 1,
-    "Name": "Server",
+    "Name": "Machine A",
     "ParentId": null,
     "Children": [
       {
         "Id": 2,
-        "Name": "Machine A",
+        "Name": "Machine B",
         "ParentId": 1,
         "Children": [
           {
-            "Id": 7,
-            "Name": "Lathe",
+            "Id": 3,
+            "Name": "Machine C",
             "ParentId": 2,
             "Children": [
               {
+                "Id": 4,
+                "Name": "Payroll",
+                "ParentId": 3,
+                "Children": []
+              },
+              {
                 "Id": 5,
-                "Name": "Machine ui",
-                "ParentId": 7,
+                "Name": "Receivables",
+                "ParentId": 3,
+                "Children": []
+              }
+            ]
+          },
+          {
+            "Id": 6,
+            "Name": "Audit",
+            "ParentId": 2,
+            "Children": [
+              {
+                "Id": 7,
+                "Name": "Machine X",
+                "ParentId": 6,
+                "Children": [
+                  {
+                    "Id": 8,
+                    "Name": "Kunal",
+                    "ParentId": 7,
+                    "Children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Id": 9,
+        "Name": "HRDept",
+        "ParentId": 1,
+        "Children": [
+          {
+            "Id": 10,
+            "Name": "Recruitment",
+            "ParentId": 9,
+            "Children": []
+          },
+          {
+            "Id": 11,
+            "Name": "EmployeeRelations",
+            "ParentId": 9,
+            "Children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Id": 12,
+    "Name": "ManufacturingUnit1",
+    "ParentId": null,
+    "Children": [
+      {
+        "Id": 13,
+        "Name": "AssemblyLine1",
+        "ParentId": 12,
+        "Children": [
+          {
+            "Id": 14,
+            "Name": "ShiftA",
+            "ParentId": 13,
+            "Children": []
+          },
+          {
+            "Id": 15,
+            "Name": "ShiftB",
+            "ParentId": 13,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Id": 16,
+        "Name": "QualityControl",
+        "ParentId": 12,
+        "Children": [
+          {
+            "Id": 17,
+            "Name": "TestingLab",
+            "ParentId": 16,
+            "Children": [
+              {
+                "Id": 18,
+                "Name": "ChemicalTests",
+                "ParentId": 17,
+                "Children": []
+              },
+              {
+                "Id": 19,
+                "Name": "MechanicalTests",
+                "ParentId": 17,
                 "Children": []
               }
             ]
@@ -27,9 +124,80 @@
     ]
   },
   {
-    "Id": 6,
-    "Name": "Machine new",
+    "Id": 20,
+    "Name": "ManufacturingUnit2",
     "ParentId": null,
-    "Children": []
+    "Children": [
+      {
+        "Id": 21,
+        "Name": "Packaging",
+        "ParentId": 20,
+        "Children": [
+          {
+            "Id": 22,
+            "Name": "Boxing",
+            "ParentId": 21,
+            "Children": []
+          },
+          {
+            "Id": 23,
+            "Name": "Labeling",
+            "ParentId": 21,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Id": 24,
+        "Name": "Maintenance",
+        "ParentId": 20,
+        "Children": [
+          {
+            "Id": 25,
+            "Name": "Electrical",
+            "ParentId": 24,
+            "Children": []
+          },
+          {
+            "Id": 26,
+            "Name": "Mechanical",
+            "ParentId": 24,
+            "Children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Id": 27,
+    "Name": "Logistics",
+    "ParentId": null,
+    "Children": [
+      {
+        "Id": 28,
+        "Name": "Warehouse2",
+        "ParentId": 27,
+        "Children": []
+      },
+      {
+        "Id": 29,
+        "Name": "Transport",
+        "ParentId": 27,
+        "Children": [
+          {
+            "Id": 30,
+            "Name": "FleetA",
+            "ParentId": 29,
+            "Children": []
+          },
+          {
+            "Id": 31,
+            "Name": "FleetB",
+            "ParentId": 29,
+            "Children": []
+          }
+        ]
+      }
+    ]
   }
 ]
