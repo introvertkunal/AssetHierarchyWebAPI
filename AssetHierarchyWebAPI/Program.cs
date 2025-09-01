@@ -5,20 +5,19 @@ using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Services;
 using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args );
 
 builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowReactApp",
+{
+    options.AddPolicy("AllowAll",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173", "https://asset-hierarchy-frontend.vercel.app")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
         });
-
 });
+
 
 builder.Services.AddAssetHierarchyService(builder.Configuration);
 
@@ -32,7 +31,7 @@ builder.Services.AddControllers()
     .AddXmlSerializerFormatters(); 
 
 var app = builder.Build();
-app.UseCors("AllowReactApp");
+app.UseCors("AllowAll");
 //app.UseMiddleware<AssetHierarchyWebAPI.RateLimitingMiddleware>();
 app.UseMiddleware<AssetHierarchyWebAPI.Middlewares.MissingNameLoggingMiddleware>();
 app.MapControllers();

@@ -12,17 +12,18 @@ namespace AssetHierarchyWebAPI.Extensions
         {
             string format = configuration["storageFormat"] ?? "json";
 
-            if(format == "xml")
+            if (format == "xml")
             {
                 services.AddScoped<Interfaces.IAssetHierarchyService, Services.XmlAssetHierarchyService>();
             }
-            else if(format == "json")
+            else if (format == "json")
             {
-                services.AddScoped<Interfaces.IAssetHierarchyService, Services.JsonAssetHierarchyService>();      
+                services.AddScoped<Interfaces.IAssetHierarchyService, Services.JsonAssetHierarchyService>();
             }
-            else if(format == "db")
+            else if (format == "db")
             {
-                services.AddScoped<IAssetHierarchyService, DBAssetHierarchyService >();
+                services.AddScoped<IAssetSignal, DBAssetSignalService>();
+                services.AddScoped<IAssetHierarchyService, DBAssetHierarchyService>();
                 services.AddDbContext<AssetContext>(options => options.UseSqlServer(configuration.GetConnectionString("AssetConnStr")));
             }
 

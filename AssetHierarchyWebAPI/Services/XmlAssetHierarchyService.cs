@@ -14,15 +14,19 @@ namespace AssetHierarchyWebAPI.Services
 
         public XmlAssetHierarchyService()
         {
-            LoadFromXml();
+            LoadFromXmlAsync().GetAwaiter().GetResult();
         }
 
-        public AssetSearchResult SearchNode(string name)
+        // Search Asset
+        public async Task<AssetSearchResult> SearchNode(string name)
         {
-            var node = _nodeMap.Values.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            var node = _nodeMap.Values.FirstOrDefault(n =>
+                n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
             if (node == null) return null;
 
-            var parentName = node.ParentId.HasValue && _nodeMap.TryGetValue(node.ParentId.Value, out var parent)
+            var parentName = node.ParentId.HasValue &&
+                             _nodeMap.TryGetValue(node.ParentId.Value, out var parent)
                 ? parent.Name
                 : null;
 
@@ -31,11 +35,19 @@ namespace AssetHierarchyWebAPI.Services
                 Id = node.Id,
                 NodeName = node.Name,
                 ParentName = parentName,
-                Children = node.Children.Select(c => c.Name).ToList()
+                Children = node.Children.Select(c => c.Name).ToList(),
+                Signals = node.Signals.Select(s => new SignalResult
+                {
+                    SignalId = s.SignalId,
+                    SignalName = s.SignalName,
+                    SignalType = s.SignalType,
+                    Description = s.Description
+                }).ToList()
             };
         }
 
-        public string AddNode(string name, int? parentId)
+        // Add Asset
+        public async Task<string> AddNodeAsync(string name, int? parentId)
         {
             if (_nodeMap.Values.Any(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 return $"Asset '{name}' already exists.";
@@ -61,11 +73,12 @@ namespace AssetHierarchyWebAPI.Services
             }
 
             _nodeMap[newNode.Id] = newNode;
-            SaveToXmlFile();
+            await SaveToXmlFileAsync();
             return $"Asset '{name}' added successfully.";
         }
 
-        public string RemoveNode(int id)
+        // Remove Asset
+        public async Task<string> RemoveNodeAsync(int id)
         {
             if (!_nodeMap.ContainsKey(id))
                 return $"Asset with Id {id} not found.";
@@ -73,40 +86,102 @@ namespace AssetHierarchyWebAPI.Services
             if (RemoveRecursive(_rootNodes, id))
             {
                 _nodeMap.TryRemove(id, out _);
-                SaveToXmlFile();
+                await SaveToXmlFileAsync();
                 return $"Asset with Id {id} removed successfully.";
             }
+
             return $"Asset with Id {id} not found.";
         }
 
-        public List<AssetNode> GetHierarchy() => _rootNodes;
+        // Get Hierarchy
+        public async Task<List<AssetNode>> GetHierarchyAsync() => _rootNodes;
 
-        private bool RemoveRecursive(List<AssetNode> nodes, int id)
+        // Update Node
+        public async Task<string> UpdateNode(int id, string newName)
         {
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i].Id == id)
-                {
-                    nodes.RemoveAt(i);
-                    return true;
-                }
-                if (RemoveRecursive(nodes[i].Children, id))
-                    return true;
-            }
-            return false;
+            if (!_nodeMap.TryGetValue(id, out var node))
+                return $"Asset with Id {id} not found.";
+
+            if (_nodeMap.Values.Any(n => n.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && n.Id != id))
+                return $"Asset name '{newName}' already exists.";
+
+            node.Name = newName;
+            await SaveToXmlFileAsync();
+            return $"Asset Id {id} renamed to '{newName}'.";
         }
 
-        private void LoadFromXml()
+        // Reorder Node
+        public async Task<string> ReorderNode(int id, int? newParentId)
+        {
+            if (!_nodeMap.TryGetValue(id, out var node))
+                return $"Asset with Id {id} not found.";
+           
+            if (newParentId.HasValue && IsDescendant(node, newParentId.Value))
+                return "Invalid move: cannot assign descendant as parent.";
+
+            if (node.ParentId == null)
+                _rootNodes.Remove(node);
+            else if (_nodeMap.TryGetValue(node.ParentId.Value, out var oldParent))
+                oldParent.Children.Remove(node);
+
+            if (newParentId == null)
+            {
+                _rootNodes.Add(node);
+                node.ParentId = null;
+            }
+            else if (_nodeMap.TryGetValue(newParentId.Value, out var newParent))
+            {
+                newParent.Children.Add(node);
+                node.ParentId = newParentId;
+            }
+            else
+            {
+                return $"New parent with Id {newParentId} not found.";
+            }
+
+            await SaveToXmlFileAsync();
+            return $"Asset Id {id} moved successfully.";
+        }
+
+        // Replace JSON file with uploaded one
+        public async Task<string> ReplaceJsonFileAsync(IFormFile file)
+        {
+            try
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                var content = await reader.ReadToEndAsync();
+
+                var deserializeData = System.Text.Json.JsonSerializer.Deserialize<List<AssetNode>>(content);
+                if (deserializeData != null)
+                {
+                    _rootNodes = deserializeData;
+                    BuildNodeMap();
+                    await SaveToXmlFileAsync();
+                }
+                else
+                {
+                    throw new ArgumentException("File is empty or not provided.");
+                }
+                return "JSON File is uploaded Successfully";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error replacing XML file: {ex.Message}");
+                return "JSON File is not in Correct Format";
+            }
+        }
+
+        // ---------------- Helpers ----------------
+
+        private async Task LoadFromXmlAsync()
         {
             try
             {
                 if (File.Exists(FilePath_xml))
                 {
+                    using var stream = new FileStream(FilePath_xml, FileMode.Open, FileAccess.Read);
                     var serializer = new XmlSerializer(typeof(List<AssetNode>));
-                    using (var reader = new StreamReader(FilePath_xml))
-                    {
-                        _rootNodes = serializer.Deserialize(reader) as List<AssetNode> ?? new List<AssetNode>();
-                    }
+                    _rootNodes = (serializer.Deserialize(stream) as List<AssetNode>) ?? new List<AssetNode>();
                     BuildNodeMap();
                 }
             }
@@ -117,15 +192,14 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
-        private void SaveToXmlFile()
+        private async Task SaveToXmlFileAsync()
         {
             try
             {
+                using var stream = new FileStream(FilePath_xml, FileMode.Create, FileAccess.Write, FileShare.None);
                 var serializer = new XmlSerializer(typeof(List<AssetNode>));
-                using (var writer = new StreamWriter(FilePath_xml))
-                {
-                    serializer.Serialize(writer, _rootNodes);
-                }
+                serializer.Serialize(stream, _rootNodes);
+                await stream.FlushAsync();
             }
             catch (Exception ex)
             {
@@ -150,73 +224,37 @@ namespace AssetHierarchyWebAPI.Services
                 AddToMapRecursive(child);
         }
 
-        // ---------------- New Methods ----------------
-
-        public string UpdateNode(int id, string newName)
+        private bool RemoveRecursive(ICollection<AssetNode> nodes, int id)
         {
-            if (!_nodeMap.TryGetValue(id, out var node))
-                return $"Asset with Id {id} not found.";
+            var nodeList = nodes.ToList();
 
-            node.Name = newName;
-            SaveToXmlFile();
-            return $"Asset Id {id} renamed to '{newName}'.";
-        }
-
-        public string ReorderNode(int id, int? newParentId)
-        {
-            if (!_nodeMap.TryGetValue(id, out var node))
-                return $"Asset with Id {id} not found.";
-
-            // Remove from old parent or root
-            if (node.ParentId == null)
-                _rootNodes.Remove(node);
-            else if (_nodeMap.TryGetValue(node.ParentId.Value, out var oldParent))
-                oldParent.Children.Remove(node);
-
-            // Add to new parent or root
-            if (newParentId == null)
+            for (int i = 0; i < nodeList.Count; i++)
             {
-                _rootNodes.Add(node);
-                node.ParentId = null;
-            }
-            else if (_nodeMap.TryGetValue(newParentId.Value, out var newParent))
-            {
-                newParent.Children.Add(node);
-                node.ParentId = newParentId;
-            }
-            else
-            {
-                return $"New parent with Id {newParentId} not found.";
-            }
-
-            SaveToXmlFile();
-            return $"Asset Id {id} moved successfully.";
-        }
-
-        public async Task ReplaceJsonFileAsync(IFormFile file)
-        {
-            try
-            {
-                using (var stream = new StreamReader(file.OpenReadStream()))
+                if (nodeList[i].Id == id)
                 {
-                    var deserializeData = System.Text.Json.JsonSerializer.Deserialize<List<AssetNode>>(stream.ReadToEnd());
-                    if (deserializeData != null)
-                    {
-                        _rootNodes = deserializeData;
-                        BuildNodeMap();
-                        SaveToXmlFile();
-                    }
-                    else
-                    {
-                        throw new ArgumentException("File is empty or not provided.");
-                    }
+                    nodes.Remove(nodeList[i]);
+                    return true;
                 }
+                if (RemoveRecursive(nodeList[i].Children, id))
+                    return true;
             }
-            catch (Exception ex)
+            return false;
+        }
+
+        private bool IsDescendant(AssetNode node, int potentialParentId)
+        {
+            if (!_nodeMap.TryGetValue(potentialParentId, out var parent)) return false;
+
+            while (parent != null)
             {
-                Console.WriteLine($"Error replacing XML file: {ex.Message}");
-                throw new ArgumentException("File is empty or not provided.", ex);
+                if (parent.ParentId == node.Id)
+                    return true;
+
+                parent = parent.ParentId.HasValue &&
+                         _nodeMap.TryGetValue(parent.ParentId.Value, out var grandParent)
+                         ? grandParent : null;
             }
+            return false;
         }
     }
 }

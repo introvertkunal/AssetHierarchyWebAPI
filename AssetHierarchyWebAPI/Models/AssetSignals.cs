@@ -4,30 +4,30 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AssetHierarchyWebAPI.Models
 {
-    public class AssetNode
+    public class AssetSignals
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [JsonProperty(Required = Required.Always)]
-        public int Id { get; set; }
+        public int SignalId { get; set; }
 
         [Required]
         [MaxLength(100)]
         [JsonProperty(Required = Required.Always)]
-        public string Name { get; set; }
+        public string SignalName { get; set; }
 
-        
-        public int? ParentId { get; set; }
-
-        [ForeignKey("ParentId")]
-        public AssetNode Parent { get; set; }
-
+        [Required]
+        [MaxLength(20)]
         [JsonProperty(Required = Required.Always)]
-        public ICollection<AssetNode> Children { get; set; } = new List<AssetNode>();
+        public string SignalType { get; set; }
 
+        [MaxLength(500)]
         [JsonProperty(Required = Required.Always)]
-        public ICollection<AssetSignals> Signals { get; set; } = new List<AssetSignals>();
+        public string Description { get; set; }
 
+        public int AssetNodeId { get; set; }
+
+        [ForeignKey("AssetNodeId")]
+        public AssetNode AssetNode { get; set; }
     }
 }
-

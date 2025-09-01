@@ -3,48 +3,62 @@ using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace AssetHierarchyWebAPI.Services
 {
     public class DBAssetHierarchyService : IAssetHierarchyService
     {
         private readonly AssetContext _context;
-
         private const string FilePath_json = "asset_hierarchy.json";
-        public DBAssetHierarchyService(AssetContext Context)
+
+        public DBAssetHierarchyService(AssetContext context)
         {
-            _context = Context;
+            _context = context;
         }
 
-        // Method for Add Asset
-        public string AddNode(string name, int? parentId)
+        // Add Node
+        public async Task<string> AddNodeAsync(string name, int? parentId)
         {
-            if(_context.AssetHierarchy.Any(n => n.Name == name))
-                return $"Asset '{name}' already exists.";
-
-            if(parentId != null && !_context.AssetHierarchy.Any(n=> n.Id == parentId))
-                return $"Parent with Id {parentId} not found.";
-
-            var newNode = new AssetNode
+            try
             {
-                Name = name,
-                ParentId = parentId
-            };
+                if (await _context.AssetHierarchy.AnyAsync(n => n.Name == name))
+                    return $"Asset '{name}' already exists.";
 
-            _context.AssetHierarchy.Add(newNode);
-            _context.SaveChanges();
-            return $"Asset {name} is added Successfully";
+                if (parentId != null && !await _context.AssetHierarchy.AnyAsync(n => n.Id == parentId))
+                    return $"Parent with Id {parentId} not found.";
+
+                var newNode = new AssetNode { Name = name, ParentId = parentId };
+                await _context.AssetHierarchy.AddAsync(newNode);
+                await _context.SaveChangesAsync();
+
+                return $"Asset {name} added successfully.";
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to add node '{name}': {ex.Message}";
+            }
         }
 
-        // This Return Asset Hierarchy
-        public List<AssetNode> GetHierarchy()
+        // Get full hierarchy
+        public async Task<List<AssetNode>> GetHierarchyAsync()
         {
-            var allNodes = _context.AssetHierarchy.ToList();
+            try
+            {
+                var allNodes = await _context.AssetHierarchy
+                                             .AsNoTracking()
+                                             .ToListAsync();
 
-            return BuildHierarchy(allNodes, null);
+                return BuildHierarchy(allNodes, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching hierarchy: {ex.Message}");
+                return new List<AssetNode>();
+            }
         }
 
-        // Used to Return Asset with depth Hierarchy
         private List<AssetNode> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
         {
             return allNodes
@@ -59,207 +73,264 @@ namespace AssetHierarchyWebAPI.Services
                 .ToList();
         }
 
-        // Method for Remove Asset
-        public string RemoveNode(int id)
+        // Remove Node (cascade handles children/signals)
+        public async Task<string> RemoveNodeAsync(int id)
         {
-            var node = _context.AssetHierarchy
-                         .Include(n => n.Children)
-                         .FirstOrDefault(n => n.Id == id);
+            try
+            {
+                var node = await _context.AssetHierarchy
+                    .Include(n => n.Children)
+                    .FirstOrDefaultAsync(n => n.Id == id);
 
-            if (node == null)
-                return "Asset is not Exist";
+                if (node == null)
+                    return "Asset does not exist";
 
-            DeleteChildren(node);
+                await DeleteNodeRecursive(node);
+
+                await _context.SaveChangesAsync();
+
+                return $"Asset {node.Name} and its children removed successfully.";
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to remove node with ID {id}: {ex.Message}";
+            }
+        }
+
+        private async Task DeleteNodeRecursive(AssetNode node)
+        {
+            // Load children explicitly
+            await _context.Entry(node).Collection(n => n.Children).LoadAsync();
+
+            foreach (var child in node.Children.ToList())
+            {
+                await DeleteNodeRecursive(child);
+            }
 
             _context.AssetHierarchy.Remove(node);
-            _context.SaveChanges();
-
-            return $"Asset {node.Name} Removed Successfully";
         }
 
-        // If Asset have Children then Delete Children First
-        private void DeleteChildren(AssetNode node)
+
+        // Update Node Name
+        public async Task<string> UpdateNode(int id, string newName)
         {
-            if(node.Children != null && node.Children.Any())
+            try
             {
-                foreach(var child in node.Children.ToList())
+                var node = await _context.AssetHierarchy.FindAsync(id);
+                if (node == null)
+                    return $"Asset with ID {id} does not exist.";
+
+                if (await _context.AssetHierarchy.AnyAsync(n => n.Name == newName && n.Id != id))
+                    return $"Asset name '{newName}' already exists. Choose a different name.";
+
+                var prevName = node.Name;
+                node.Name = newName;
+
+                await _context.SaveChangesAsync();
+                return $"{prevName} renamed to {node.Name}.";
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to update node with ID {id}: {ex.Message}";
+            }
+        }
+
+        // Reorder Node
+        public async Task<string> ReorderNode(int id, int? newParentId)
+        {
+            try
+            {
+                var node = await _context.AssetHierarchy.FindAsync(id);
+                if (node == null)
+                    return "Asset does not exist.";
+
+                if (newParentId != null)
                 {
-                    DeleteChildren(child);
-                    _context.AssetHierarchy.Remove(child);
-                    _context.SaveChanges();
+                    if (!await _context.AssetHierarchy.AnyAsync(n => n.Id == newParentId))
+                        return "New parent does not exist.";
+
+                    if (id == newParentId)
+                        return "A node cannot be its own parent.";
+
+                    if (await IsDescendant(id, newParentId.Value))
+                        return "Invalid move: cannot assign descendant as parent.";
                 }
+
+                node.ParentId = newParentId;
+                await _context.SaveChangesAsync();
+
+                return "Node reordered successfully.";
             }
-        }
-
-        // Method for Rename Asset Name
-        public string UpdateNode(int id, string newName)
-        {
-            var node = _context.AssetHierarchy.FirstOrDefault(n => n.Id == id);
-
-            if (node == null)
-                return $"Asset is not Exist";
-
-            var prevName = node.Name;
-            node.Name = newName;
-
-            _context.SaveChanges();
-
-            return $"{prevName} is renamed to {node.Name} ";
-
-        }
-
-        // Method that Reorder Hierarchy
-        public string ReorderNode(int id, int? newParentId)
-        {
-           
-            var node = _context.AssetHierarchy.FirstOrDefault(n => n.Id == id);
-            if (node == null)
-                return "Asset does not exist";
-
-     
-            if (newParentId != null)
+            catch (Exception ex)
             {
-                if (!_context.AssetHierarchy.Any(n => n.Id == newParentId))
-                    return "New parent does not exist";
-
-         
-                if (id == newParentId)
-                    return "A node cannot be its own parent";
-
-                
-                if (IsDescendant(id, newParentId.Value))
-                    return "Invalid move: cannot assign descendant as parent";
+                return $"Failed to reorder node with ID {id}: {ex.Message}";
             }
-
-            node.ParentId = newParentId;
-            _context.SaveChanges();
-
-            return "Node reordered successfully";
         }
 
-        // Prevent cycles (child cannot become parent of its ancestor)
-        private bool IsDescendant(int nodeId, int newParentId)
+        private async Task<bool> IsDescendant(int nodeId, int newParentId)
         {
-            var parent = _context.AssetHierarchy.FirstOrDefault(n => n.Id == newParentId);
+            var parent = await _context.AssetHierarchy.FindAsync(newParentId);
             while (parent != null)
             {
                 if (parent.ParentId == nodeId)
                     return true;
 
-                parent = _context.AssetHierarchy.FirstOrDefault(n => n.Id == parent.ParentId);
+                parent = await _context.AssetHierarchy.FindAsync(parent.ParentId);
             }
             return false;
         }
 
-
-        // Method for Version and Load Data from JSON File
-        public async Task ReplaceJsonFileAsync(IFormFile file)
+        // Replace hierarchy from JSON (with transaction & rollback)
+        public async Task<string> ReplaceJsonFileAsync(IFormFile file)
         {
-            string fullPath = Path.GetFullPath(FilePath_json);
-            string directory = Path.GetDirectoryName(fullPath) ?? AppContext.BaseDirectory;
-            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fullPath);
-            string extension = Path.GetExtension(fullPath);
-
-            if (File.Exists(fullPath))
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-                string backupFilePath = Path.Combine(directory, $"{fileNameWithoutExt}_{timestamp}{extension}");
-                File.Copy(fullPath, backupFilePath);
+                string fullPath = Path.GetFullPath(FilePath_json);
+                string directory = Path.GetDirectoryName(fullPath) ?? AppContext.BaseDirectory;
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fullPath);
+                string extension = Path.GetExtension(fullPath);
 
-                CleanupOldBackups(directory, fileNameWithoutExt, extension, keepLast: 5);
-            }
-
-            using (var stream1 = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
-            {
-                await file.CopyToAsync(stream1);
-            }
-
-            using var stream = new StreamReader(file.OpenReadStream());
-            var json = await stream.ReadToEndAsync();
-            var nodes = JsonSerializer.Deserialize<List<AssetNode>>(json) ?? new List<AssetNode>();
-
-            // Clear existing
-            _context.AssetHierarchy.RemoveRange(_context.AssetHierarchy);
-            await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetHierarchy', RESEED, 0)");
-
-            await _context.SaveChangesAsync();
-
-            // Dictionary to map old IDs from JSON → new IDs from DB
-            var idMap = new Dictionary<int, int>();
-
-            
-            foreach (var node in nodes.Where(n => n.ParentId == null))
-            {
-                await InsertNodeRecursive(node, null, idMap);
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        private async Task InsertNodeRecursive(AssetNode node, int? newParentId, Dictionary<int, int> idMap)
-        {
-            
-            var newNode = new AssetNode
-            {
-                Name = node.Name,
-                ParentId = newParentId
-            };
-
-            _context.AssetHierarchy.Add(newNode);
-            await _context.SaveChangesAsync();
-
-            
-            idMap[node.Id] = newNode.Id;
-
-         
-            if (node.Children != null)
-            {
-                foreach (var child in node.Children)
+                // backup old file
+                if (File.Exists(fullPath))
                 {
-                    await InsertNodeRecursive(child, newNode.Id, idMap);
+                    string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+                    string backupFilePath = Path.Combine(directory, $"{fileNameWithoutExt}_{timestamp}{extension}");
+                    File.Copy(fullPath, backupFilePath);
+
+                    CleanupOldBackups(directory, fileNameWithoutExt, extension, keepLast: 5);
                 }
+
+                // save new file physically
+                using (var stream1 = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+                {
+                    await file.CopyToAsync(stream1);
+                }
+
+                // read the uploaded file content
+                using var stream = new StreamReader(file.OpenReadStream());
+                var json = await stream.ReadToEndAsync();
+
+                // strict deserialization settings
+                var settings = new JsonSerializerSettings
+                {
+                    MissingMemberHandling = MissingMemberHandling.Error, 
+                    NullValueHandling = NullValueHandling.Ignore         
+                };
+
+                // try deserializing – throws if required field missing or unknown field present
+                var nodes = JsonConvert.DeserializeObject<List<AssetNode>>(json, settings);
+                if (nodes == null || nodes.Count == 0)
+                    throw new Exception("No nodes found in JSON");
+
+                // clear old data
+                _context.AssetSignal.RemoveRange(_context.AssetSignal);
+                _context.AssetHierarchy.RemoveRange(_context.AssetHierarchy);
+
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetHierarchy', RESEED, 0)");
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetSignal', RESEED, 0)");
+                await _context.SaveChangesAsync();
+
+                // insert new hierarchy
+                foreach (var node in nodes.Where(n => n.ParentId == null))
+                {
+                    await InsertNodeRecursive(node, null);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return "JSON File Uploaded Successfully";
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return "JSON File is not in Correct Format";
             }
         }
 
-        // Method for Search Asset
-        public AssetSearchResult SearchNode(string name)
+
+        private async Task InsertNodeRecursive(AssetNode node, int? newParentId)
+    {
+        var newNode = new AssetNode { Name = node.Name, ParentId = newParentId };
+        await _context.AssetHierarchy.AddAsync(newNode);
+        await _context.SaveChangesAsync();
+
+        if (node.Signals != null && node.Signals.Any())
         {
-            var node = _context.AssetHierarchy
-                             .Include(n => n.Children)
-                             .FirstOrDefault(n => n.Name.ToLower() == name.ToLower());
-
-            if (node == null)
-                return null;
-
-            var parentName = node.ParentId != null ? _context.AssetHierarchy
-                                                     .Where(n=> n.Id == node.ParentId)
-                                                     .Select(n => n.Name).FirstOrDefault() : null;
-
-            return new AssetSearchResult
+            foreach (var signal in node.Signals)
             {
-                Id = node.Id,
-                NodeName = node.Name,
-                ParentName = parentName,
-                Children = node.Children.Select(c => c.Name).ToList()
-            };
+                var newSignal = new AssetSignals
+                {
+                    SignalName = signal.SignalName,
+                    SignalType = signal.SignalType,
+                    Description = signal.Description,
+                    AssetNodeId = newNode.Id
+                };
+                await _context.AssetSignal.AddAsync(newSignal);
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        if (node.Children != null && node.Children.Any())
+        {
+            foreach (var child in node.Children)
+            {
+                await InsertNodeRecursive(child, newNode.Id);
+            }
+        }
+    }
+
+    // Search Node + Signals
+    public async Task<AssetSearchResult?> SearchNode(string name)
+        {
+            try
+            {
+                var node = await _context.AssetHierarchy
+                                         .Include(n => n.Children)
+                                         .Include(n => n.Signals)
+                                         .FirstOrDefaultAsync(n => n.Name.ToLower() == name.ToLower());
+
+                if (node == null) return null;
+
+                var parentName = node.ParentId != null
+                    ? await _context.AssetHierarchy.Where(n => n.Id == node.ParentId)
+                                                   .Select(n => n.Name)
+                                                   .FirstOrDefaultAsync()
+                    : null;
+
+                return new AssetSearchResult
+                {
+                    Id = node.Id,
+                    NodeName = node.Name,
+                    ParentName = parentName,
+                    Children = node.Children.Select(c => c.Name).ToList(),
+                    Signals = node.Signals.Select(s => new SignalResult
+                    {
+                        SignalId = s.SignalId,
+                        SignalName = s.SignalName,
+                        SignalType = s.SignalType,
+                        Description = s.Description
+                    }).ToList()
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Search failed: {ex.Message}");
+                return null;
+            }
         }
 
         private void CleanupOldBackups(string directory, string baseName, string extension, int keepLast)
         {
             var backups = Directory.GetFiles(directory, $"{baseName}_*{extension}")
-                .OrderByDescending(f => File.GetCreationTime(f))
-                .ToList();
+                                   .OrderByDescending(f => File.GetCreationTime(f))
+                                   .ToList();
 
             foreach (var oldFile in backups.Skip(keepLast))
             {
-                try { File.Delete(oldFile); } 
-                
-                catch(Exception ex)
-                {
-                    Console.WriteLine($"Error Occur while deleting file: {ex.Message}");
-                }
+                try { File.Delete(oldFile); }
+                catch (Exception ex) { Console.WriteLine($"Error deleting file: {ex.Message}"); }
             }
         }
-
     }
 }
