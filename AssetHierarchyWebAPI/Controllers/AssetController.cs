@@ -32,7 +32,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Remove Node 
         [HttpDelete("remove")]
-        [Authorize(Roles = "Admin,User")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Remove(int id)
         {
             if (id < 1)
@@ -44,6 +44,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Get full hierarchy
         [HttpGet("hierarchy")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetHierarchy()
         {
             var hierarchy = await _service.GetHierarchyAsync();
@@ -53,6 +54,7 @@ namespace AssetHierarchyWebAPI.Controllers
         // Search node
         [LogMissingName]
         [HttpGet("search")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Search(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
