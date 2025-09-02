@@ -1,5 +1,6 @@
 ﻿using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -7,6 +8,7 @@ namespace AssetHierarchyWebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AssetController : ControllerBase
     {
         private readonly IAssetHierarchyService _service;
@@ -18,6 +20,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Add Node
         [HttpPost("add")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Add(string name, int? parentId)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -29,6 +32,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Remove Node 
         [HttpDelete("remove")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Remove(int id)
         {
             if (id < 1)
@@ -71,6 +75,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Update Node (rename asset)
         [HttpPut("update")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, string newName)
         {
             if (string.IsNullOrWhiteSpace(newName))
@@ -82,6 +87,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Reorder Node (move under new parent)
         [HttpPut("reorder")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Reorder(int id, int? newParentId)
         {
             var result = await _service.ReorderNode(id, newParentId);
@@ -90,6 +96,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Replace with uploaded JSON file
         [HttpPost("replace-file")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ReplaceFileAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -109,6 +116,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Download current persistence file (only for JSON/XML, not DB)
         [HttpGet("downloadFile")]
+        [Authorize(Roles = "Admin,User")]
         public IActionResult DownloadFile([FromServices] IConfiguration configuration)
         {
             string format = configuration["storageFormat"] ?? "json";

@@ -1,11 +1,13 @@
 ﻿using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssetHierarchyWebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SignalController : ControllerBase
     {
         private readonly IAssetSignal _signalService;
@@ -17,6 +19,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Add Signal under an Asset
         [HttpPost("{assetId}/add")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddSignal(int assetId, [FromBody] AssetSignals signal)
         {
             if (signal == null || string.IsNullOrWhiteSpace(signal.SignalName))
@@ -28,6 +31,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Remove Signal
         [HttpDelete("{signalId}/remove")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveSignal(int signalId)
         {
             if (signalId < 1)
@@ -39,6 +43,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Update Signal
         [HttpPut("{signalId}/update")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateSignal(int signalId, [FromBody] AssetSignals updatedSignal)
         {
             if (updatedSignal == null || string.IsNullOrWhiteSpace(updatedSignal.SignalName))
@@ -50,6 +55,7 @@ namespace AssetHierarchyWebAPI.Controllers
 
         // Get all signals under a Node
         [HttpGet("node/{nodeId}")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetSignalsByNodeId(int nodeId)
         {
             if (nodeId < 1)

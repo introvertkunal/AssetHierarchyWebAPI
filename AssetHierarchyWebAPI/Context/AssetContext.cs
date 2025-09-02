@@ -1,11 +1,10 @@
 ﻿using AssetHierarchyWebAPI.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
-using AssetHierarchyWebAPI.Models;
 
 namespace AssetHierarchyWebAPI.Context
 {
-    public class AssetContext : DbContext
+    public class AssetContext : IdentityDbContext<AppUser>
     {
         public AssetContext(DbContextOptions<AssetContext> options) : base(options) { }
 
@@ -14,20 +13,20 @@ namespace AssetHierarchyWebAPI.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-           
+            
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<AssetNode>()
                 .HasOne(a => a.Parent)
                 .WithMany(a => a.Children)
                 .HasForeignKey(a => a.ParentId)
-                .OnDelete(DeleteBehavior.ClientCascade); 
+                .OnDelete(DeleteBehavior.ClientCascade);
 
-            
             modelBuilder.Entity<AssetSignals>()
                 .HasOne(s => s.AssetNode)
                 .WithMany(a => a.Signals)
                 .HasForeignKey(s => s.AssetNodeId)
-                .OnDelete(DeleteBehavior.Cascade); 
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
-
