@@ -1,0 +1,406 @@
+[
+  {
+    "Id": 1,
+    "Name": "&^%$%Alpha",
+ 
+    "Children": [
+      {
+        "Id": 2,
+        "Name": "ProductionLineA",
+        "ParentId": 1,
+        "Children": [
+          {
+            "Id": 3,
+            "Name": "Station1",
+            "ParentId": 2,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 1,
+                "SignalName": "TempSensor",
+                "SignalType": "Real",
+                "Description": "Measures temperature"
+              }
+            ]
+          },
+          {
+            "Id": 4,
+            "Name": "Station2",
+            "ParentId": 2,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 2,
+                "SignalName": "PressureSensor",
+                "SignalType": "Real",
+                "Description": "Measures pressure"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 3,
+            "SignalName": "LineStatus",
+            "SignalType": "Integer",
+            "Description": "Current status of line"
+          }
+        ]
+      },
+      {
+        "Id": 5,
+        "Name": "ProductionLineB",
+        "ParentId": 1,
+        "Children": [
+          {
+            "Id": 6,
+            "Name": "Station3",
+            "ParentId": 5,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 4,
+                "SignalName": "Speed",
+                "SignalType": "Integer",
+                "Description": "Speed of conveyor"
+              }
+            ]
+          },
+          {
+            "Id": 7,
+            "Name": "Station4",
+            "ParentId": 5,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 5,
+                "SignalName": "EnergyUsage",
+                "SignalType": "Real",
+                "Description": "Energy consumed"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 6,
+            "SignalName": "OutputCount",
+            "SignalType": "Integer",
+            "Description": "Total units produced"
+          }
+        ]
+      }
+    ],
+    "Signals": [
+      {
+        "SignalId": 7,
+        "SignalName": "PowerConsumption",
+        "SignalType": "Real",
+        "Description": "Overall power usage"
+      }
+    ]
+  },
+  {
+    "Id": 8,
+    "Name": "FactoryBeta",
+    "ParentId": null,
+    "Children": [
+      {
+        "Id": 9,
+        "Name": "AssemblyUnit1",
+        "ParentId": 8,
+        "Children": [
+          {
+            "Id": 10,
+            "Name": "RobotArm1",
+            "ParentId": 9,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 8,
+                "SignalName": "ArmSpeed",
+                "SignalType": "Real",
+                "Description": "Movement speed of robot arm"
+              }
+            ]
+          },
+          {
+            "Id": 11,
+            "Name": "RobotArm2",
+            "ParentId": 9,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 9,
+                "SignalName": "ArmLoad",
+                "SignalType": "Integer",
+                "Description": "Load carried by robot arm"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 10,
+            "SignalName": "UnitEfficiency",
+            "SignalType": "Integer",
+            "Description": "Efficiency rating of unit"
+          }
+        ]
+      },
+      {
+        "Id": 12,
+        "Name": "AssemblyUnit2",
+        "ParentId": 8,
+        "Children": [
+          {
+            "Id": 13,
+            "Name": "RobotArm3",
+            "ParentId": 12,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 11,
+                "SignalName": "ArmTemp",
+                "SignalType": "Real",
+                "Description": "Temperature of robot arm"
+              }
+            ]
+          },
+          {
+            "Id": 14,
+            "Name": "RobotArm4",
+            "ParentId": 12,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 12,
+                "SignalName": "ArmTorque",
+                "SignalType": "Real",
+                "Description": "Torque applied by robot arm"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 13,
+            "SignalName": "OutputQuality",
+            "SignalType": "Integer",
+            "Description": "Quality rating of assembly output"
+          }
+        ]
+      }
+    ],
+    "Signals": [
+      {
+        "SignalId": 14,
+        "SignalName": "FactoryLoad",
+        "SignalType": "Real",
+        "Description": "Load on factory systems"
+      }
+    ]
+  },
+  {
+    "Id": 15,
+    "Name": "FactoryGamma",
+    "ParentId": null,
+    "Children": [
+      {
+        "Id": 16,
+        "Name": "Warehouse1",
+        "ParentId": 15,
+        "Children": [
+          {
+            "Id": 17,
+            "Name": "ColdStorage",
+            "ParentId": 16,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 15,
+                "SignalName": "Temperature",
+                "SignalType": "Real",
+                "Description": "Storage temperature"
+              }
+            ]
+          },
+          {
+            "Id": 18,
+            "Name": "DryStorage",
+            "ParentId": 16,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 16,
+                "SignalName": "Humidity",
+                "SignalType": "Real",
+                "Description": "Humidity level"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 17,
+            "SignalName": "StorageCapacity",
+            "SignalType": "Integer",
+            "Description": "Capacity usage percentage"
+          }
+        ]
+      },
+      {
+        "Id": 19,
+        "Name": "Warehouse2",
+        "ParentId": 15,
+        "Children": [
+          {
+            "Id": 20,
+            "Name": "RackA",
+            "ParentId": 19,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 18,
+                "SignalName": "RackLoad",
+                "SignalType": "Integer",
+                "Description": "Load on rack"
+              }
+            ]
+          },
+          {
+            "Id": 21,
+            "Name": "RackB",
+            "ParentId": 19,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 19,
+                "SignalName": "RackTemp",
+                "SignalType": "Real",
+                "Description": "Temperature at rack"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 20,
+            "SignalName": "Occupancy",
+            "SignalType": "Integer",
+            "Description": "Occupied vs free space"
+          }
+        ]
+      }
+    ],
+    "Signals": [
+      {
+        "SignalId": 21,
+        "SignalName": "LogisticsLoad",
+        "SignalType": "Integer",
+        "Description": "Overall logistics load"
+      }
+    ]
+  },
+  {
+    "Id": 22,
+    "Name": "FactoryDelta",
+    "ParentId": null,
+    "Children": [
+      {
+        "Id": 23,
+        "Name": "MaintenanceDept",
+        "ParentId": 22,
+        "Children": [
+          {
+            "Id": 24,
+            "Name": "Electrical",
+            "ParentId": 23,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 22,
+                "SignalName": "Voltage",
+                "SignalType": "Real",
+                "Description": "Operating voltage"
+              }
+            ]
+          },
+          {
+            "Id": 25,
+            "Name": "Mechanical",
+            "ParentId": 23,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 23,
+                "SignalName": "Vibration",
+                "SignalType": "Real",
+                "Description": "Vibration level"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 24,
+            "SignalName": "DeptStatus",
+            "SignalType": "Integer",
+            "Description": "Current status of maintenance"
+          }
+        ]
+      },
+      {
+        "Id": 26,
+        "Name": "SafetyDept",
+        "ParentId": 22,
+        "Children": [
+          {
+            "Id": 27,
+            "Name": "FireSafety",
+            "ParentId": 26,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 25,
+                "SignalName": "AlarmStatus",
+                "SignalType": "Integer",
+                "Description": "Fire alarm active or not"
+              }
+            ]
+          },
+          {
+            "Id": 28,
+            "Name": "HealthSafety",
+            "ParentId": 26,
+            "Children": [],
+            "Signals": [
+              {
+                "SignalId": 26,
+                "SignalName": "FirstAidKits",
+                "SignalType": "Integer",
+                "Description": "Number of first aid kits available"
+              }
+            ]
+          }
+        ],
+        "Signals": [
+          {
+            "SignalId": 27,
+            "SignalName": "IncidentReports",
+            "SignalType": "Integer",
+            "Description": "Number of incidents reported"
+          }
+        ]
+      }
+    ],
+    "Signals": [
+      {
+        "SignalId": 28,
+        "SignalName": "FactorySafetyIndex",
+        "SignalType": "Integer",
+        "Description": "Overall safety rating"
+      }
+    ]
+  }
+]

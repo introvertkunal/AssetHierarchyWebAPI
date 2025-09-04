@@ -110,14 +110,6 @@
             "Parent": null,
             "Children": [],
             "Signals": []
-          },
-          {
-            "Id": 29,
-            "Name": "datawarehouse",
-            "ParentId": 19,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
           }
         ],
         "Signals": []

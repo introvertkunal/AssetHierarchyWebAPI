@@ -26,62 +26,74 @@ namespace AssetHierarchyWebAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid request.");
-
-            // Enforce unique username & email via Identity settings
-            var user = new AppUser
+            try
             {
-                UserName = request.UserName,
-                Email = request.Email
-            };
+                if (!ModelState.IsValid)
+                    return BadRequest("Invalid request.");
 
-            var result = await _userManager.CreateAsync(user, request.Password);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                var user = new AppUser
+                {
+                    UserName = request.UserName,
+                    Email = request.Email
+                };
 
-            await _userManager.AddToRoleAsync(user, "User");
-            return Ok("User registered successfully.");
+                var result = await _userManager.CreateAsync(user, request.Password);
+                if (!result.Succeeded)
+                    return BadRequest(result.Errors);
+
+                await _userManager.AddToRoleAsync(user, "User");
+                return Ok("User registered successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred during registration: {ex.Message}");
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _userManager.FindByNameAsync(request.UserName);
-            if (user == null)
-                return Unauthorized("Invalid credentials.");
-
-            var isValid = await _userManager.CheckPasswordAsync(user, request.Password);
-            if (!isValid)
-                return Unauthorized("Invalid credentials.");
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            var claims = new List<Claim>
+            try
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+                var user = await _userManager.FindByNameAsync(request.UserName);
+                if (user == null)
+                    return Unauthorized("Invalid Username.");
 
-            foreach (var role in userRoles)
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                var isValid = await _userManager.CheckPasswordAsync(user, request.Password);
+                if (!isValid)
+                    return Unauthorized("Invalid Password.");
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var userRoles = await _userManager.GetRolesAsync(user);
 
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddHours(2),
-                signingCredentials: creds
-            );
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Name, user.UserName!),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-            return Ok(new { token = tokenString });
+                foreach (var role in userRoles)
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: _config["Jwt:Issuer"],
+                    audience: _config["Jwt:Audience"],
+                    claims: claims,
+                    notBefore: DateTime.UtcNow,
+                    expires: DateTime.UtcNow.AddHours(2),
+                    signingCredentials: creds
+                );
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                return Ok(new { token = tokenString });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred during login: {ex.Message}");
+            }
         }
     }
 }
-

@@ -2,16 +2,26 @@
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace AssetHierarchyWebAPI.Services
 {
+
+    
     public class DBAssetSignalService : IAssetSignal
     {
         private readonly AssetContext _context;
+        private const string FilePath_json = "asset_hierarchy.json";
 
         public DBAssetSignalService(AssetContext context)
         {
             _context = context;
+        }
+
+        private bool IsValidName(string name)
+        {
+            return Regex.IsMatch(name, @"^[A-Za-z][A-Za-z0-9 ]*$");
         }
 
         private bool IsValidSignalType(string signalType)
@@ -25,6 +35,12 @@ namespace AssetHierarchyWebAPI.Services
         {
             try
             {
+                if (!IsValidName(signal.SignalName))
+                    return $"Invalid asset name '{signal.SignalName}'. Name must start with a letter and contain only letters, digits, or spaces.";
+
+                if (!IsValidName(signal.Description))
+                    return $"Invalid asset description must start with a letter and contain only letters, digits, or spaces.";
+
                 var node = await _context.AssetHierarchy.FindAsync(assetId);
                 if (node == null)
                     return $"Asset with Id {assetId} not found.";
@@ -42,6 +58,7 @@ namespace AssetHierarchyWebAPI.Services
 
                 await _context.AssetSignal.AddAsync(signal);
                 await _context.SaveChangesAsync();
+                await UpdateJsonFileAsync();
 
                 return $"Signal '{signal.SignalName}' added to Asset '{node.Name}'.";
             }
@@ -62,6 +79,7 @@ namespace AssetHierarchyWebAPI.Services
 
                 _context.AssetSignal.Remove(signal);
                 await _context.SaveChangesAsync();
+                await UpdateJsonFileAsync();
 
                 return $"Signal '{signal.SignalName}' removed successfully.";
             }
@@ -97,6 +115,7 @@ namespace AssetHierarchyWebAPI.Services
                 signal.Description = updatedSignal.Description;
 
                 await _context.SaveChangesAsync();
+                await UpdateJsonFileAsync();
                 return $"Signal '{signal.SignalName}' updated successfully.";
             }
             catch (Exception ex)
@@ -124,5 +143,51 @@ namespace AssetHierarchyWebAPI.Services
                 return new List<AssetSignals>();
             }
         }
+
+        private async Task UpdateJsonFileAsync()
+        {
+            try
+            {
+                var allNodes = await _context.AssetHierarchy
+                                             .Include(n => n.Signals)
+                                             .Include(n => n.Children)
+                                             .ToListAsync();
+
+
+                var hierarchy = BuildHierarchy(allNodes, null);
+
+                var json = JsonConvert.SerializeObject(hierarchy, Formatting.Indented);
+
+                await File.WriteAllTextAsync(FilePath_json, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating JSON file: {ex.Message}");
+            }
+        }
+        private List<AssetNode> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
+        {
+            return allNodes
+                .Where(n => n.ParentId == parentId)
+                .Select(n => new AssetNode
+                {
+                    Id = n.Id,
+                    Name = n.Name,
+                    ParentId = n.ParentId,
+                    
+                    Signals = n.Signals?.Select(s => new AssetSignals
+                    {
+                        SignalId = s.SignalId,
+                        SignalName = s.SignalName,
+                        SignalType = s.SignalType,
+                        Description = s.Description,
+                        AssetNodeId = s.AssetNodeId
+                    }).ToList(),
+                    
+                    Children = BuildHierarchy(allNodes, n.Id)
+                })
+                .ToList();
+        }
+
     }
 }

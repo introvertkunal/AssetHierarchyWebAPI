@@ -1,0 +1,238 @@
+[
+  {
+    "Id": 1,
+    "Name": "Alpha",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [
+      {
+        "Id": 2,
+        "Name": "ProductionLineA",
+        "ParentId": 1,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 3,
+            "Name": "Station1",
+            "ParentId": 2,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 4,
+            "Name": "Station2",
+            "ParentId": 2,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
+        "Id": 5,
+        "Name": "ProductionLineB",
+        "ParentId": 1,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 6,
+            "Name": "Station3",
+            "ParentId": 5,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 7,
+            "Name": "Station4",
+            "ParentId": 5,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      }
+    ],
+    "Signals": []
+  },
+  {
+    "Id": 8,
+    "Name": "FactoryBeta",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [
+      {
+        "Id": 9,
+        "Name": "AssemblyUnit1",
+        "ParentId": 8,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 10,
+            "Name": "RobotArm1",
+            "ParentId": 9,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 11,
+            "Name": "RobotArm2",
+            "ParentId": 9,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
+        "Id": 12,
+        "Name": "AssemblyUnit2",
+        "ParentId": 8,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 13,
+            "Name": "RobotArm3",
+            "ParentId": 12,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 14,
+            "Name": "RobotArm4",
+            "ParentId": 12,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      }
+    ],
+    "Signals": []
+  },
+  {
+    "Id": 15,
+    "Name": "FactoryGamma",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [
+      {
+        "Id": 16,
+        "Name": "Warehouse1",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 17,
+            "Name": "ColdStorage",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 18,
+            "Name": "DryStorage",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
+        "Id": 19,
+        "Name": "Warehouse2",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 20,
+            "Name": "RackA",
+            "ParentId": 19,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 21,
+            "Name": "RackB",
+            "ParentId": 19,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
+        "Id": 22,
+        "Name": "FactoryDelta",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 23,
+            "Name": "MaintenanceDept",
+            "ParentId": 22,
+            "Parent": null,
+            "Children": [
+              {
+                "Id": 24,
+                "Name": "Electrical",
+                "ParentId": 23,
+                "Parent": null,
+                "Children": [],
+                "Signals": []
+              },
+              {
+                "Id": 25,
+                "Name": "Mechanical",
+                "ParentId": 23,
+                "Parent": null,
+                "Children": [],
+                "Signals": []
+              }
+            ],
+            "Signals": []
+          },
+          {
+            "Id": 26,
+            "Name": "SafetyDept",
+            "ParentId": 22,
+            "Parent": null,
+            "Children": [
+              {
+                "Id": 27,
+                "Name": "FireSafety",
+                "ParentId": 26,
+                "Parent": null,
+                "Children": [],
+                "Signals": []
+              },
+              {
+                "Id": 28,
+                "Name": "HealthSafety",
+                "ParentId": 26,
+                "Parent": null,
+                "Children": [],
+                "Signals": []
+              }
+            ],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      }
+    ],
+    "Signals": []
+  }
+]

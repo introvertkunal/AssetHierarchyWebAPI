@@ -26,31 +26,6 @@
             "Parent": null,
             "Children": [],
             "Signals": []
-          },
-          {
-            "Id": 16,
-            "Name": "Warehouse1",
-            "ParentId": 9,
-            "Parent": null,
-            "Children": [
-              {
-                "Id": 17,
-                "Name": "ColdStorage",
-                "ParentId": 16,
-                "Parent": null,
-                "Children": [],
-                "Signals": []
-              },
-              {
-                "Id": 18,
-                "Name": "DryStorage",
-                "ParentId": 16,
-                "Parent": null,
-                "Children": [],
-                "Signals": []
-              }
-            ],
-            "Signals": []
           }
         ],
         "Signals": []
@@ -90,6 +65,31 @@
     "Parent": null,
     "Children": [
       {
+        "Id": 16,
+        "Name": "Warehouse1",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 17,
+            "Name": "ColdStorage",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 18,
+            "Name": "DryStorage",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
         "Id": 19,
         "Name": "Warehouse2",
         "ParentId": 15,
@@ -106,14 +106,6 @@
           {
             "Id": 21,
             "Name": "RackB",
-            "ParentId": 19,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          },
-          {
-            "Id": 29,
-            "Name": "datawarehouse",
             "ParentId": 19,
             "Parent": null,
             "Children": [],

@@ -1,5 +1,56 @@
 [
   {
+    "Id": 1,
+    "Name": "Alphaoiuy",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [
+      {
+        "Id": 2,
+        "Name": "ProductionLineA",
+        "ParentId": 1,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 3,
+            "Name": "Station1",
+            "ParentId": 2,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 4,
+            "Name": "Station2",
+            "ParentId": 2,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
+        "Id": 5,
+        "Name": "ProductionL",
+        "ParentId": 1,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 6,
+            "Name": "Station3",
+            "ParentId": 5,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      }
+    ],
+    "Signals": []
+  },
+  {
     "Id": 8,
     "Name": "FactoryBeta",
     "ParentId": null,
@@ -25,31 +76,6 @@
             "ParentId": 9,
             "Parent": null,
             "Children": [],
-            "Signals": []
-          },
-          {
-            "Id": 16,
-            "Name": "Warehouse1",
-            "ParentId": 9,
-            "Parent": null,
-            "Children": [
-              {
-                "Id": 17,
-                "Name": "ColdStorage",
-                "ParentId": 16,
-                "Parent": null,
-                "Children": [],
-                "Signals": []
-              },
-              {
-                "Id": 18,
-                "Name": "DryStorage",
-                "ParentId": 16,
-                "Parent": null,
-                "Children": [],
-                "Signals": []
-              }
-            ],
             "Signals": []
           }
         ],
@@ -90,6 +116,39 @@
     "Parent": null,
     "Children": [
       {
+        "Id": 7,
+        "Name": "Station4",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [],
+        "Signals": []
+      },
+      {
+        "Id": 16,
+        "Name": "Warehouse1",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 17,
+            "Name": "ColdStorage",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 18,
+            "Name": "DryStorage",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
         "Id": 19,
         "Name": "Warehouse2",
         "ParentId": 15,
@@ -106,14 +165,6 @@
           {
             "Id": 21,
             "Name": "RackB",
-            "ParentId": 19,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          },
-          {
-            "Id": 29,
-            "Name": "datawarehouse",
             "ParentId": 19,
             "Parent": null,
             "Children": [],

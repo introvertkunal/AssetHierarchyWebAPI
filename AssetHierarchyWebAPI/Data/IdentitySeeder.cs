@@ -15,8 +15,8 @@ namespace AssetHierarchyWebAPI.Data
             }
 
             // Create Admin
-            var adminUserName = "admin";
-            var adminEmail = "admin123@gmail.com";
+            var adminUserName = "administration";
+            var adminEmail = "administration123@gmail.com";
             var admin = await userManager.FindByNameAsync(adminUserName);
 
             if (admin == null)
