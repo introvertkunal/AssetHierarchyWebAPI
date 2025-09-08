@@ -1,9 +1,12 @@
 ﻿using AssetHierarchyWebAPI.Context;
+using AssetHierarchyWebAPI.Hubs;
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace AssetHierarchyWebAPI.Services
 {
@@ -13,10 +16,14 @@ namespace AssetHierarchyWebAPI.Services
     {
         private readonly AssetContext _context;
         private const string FilePath_json = "asset_hierarchy.json";
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHubContext<NotificationHub> _hubcontext;
 
-        public DBAssetSignalService(AssetContext context)
+        public DBAssetSignalService(AssetContext context, IHttpContextAccessor httpContextAccessor, IHubContext<NotificationHub> hubcontext)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+            _hubcontext = hubcontext;
         }
 
         private bool IsValidName(string name)
@@ -28,6 +35,23 @@ namespace AssetHierarchyWebAPI.Services
         {
             return signalType.Equals("Integer", StringComparison.OrdinalIgnoreCase) ||
                    signalType.Equals("Real", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task LogAuditAsync(string operation, int? entityId, string? entityName)
+        {
+            var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Unknown";
+
+            var log = new AuditLog
+            {
+                UserName = userName,
+                Operation = operation,
+                EntityId = entityId,
+                EntityName = entityName,
+                Timestamp = DateTime.UtcNow
+            };
+
+            _context.AuditLogs.Add(log);
+            await _context.SaveChangesAsync();
         }
 
         // Add a new signal under a given AssetNode
@@ -59,6 +83,8 @@ namespace AssetHierarchyWebAPI.Services
                 await _context.AssetSignal.AddAsync(signal);
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
+                await LogAuditAsync($"Added Signal under Asset {assetId}", signal.SignalId, signal.SignalName);
+                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"New Signal {signal.SignalName} is added under Asset {node.Name}");
 
                 return $"Signal '{signal.SignalName}' added to Asset '{node.Name}'.";
             }
@@ -80,6 +106,8 @@ namespace AssetHierarchyWebAPI.Services
                 _context.AssetSignal.Remove(signal);
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
+                await LogAuditAsync("Removed Signal", signal.SignalId, signal.SignalName);
+                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Signal {signal.SignalName} is removed");
 
                 return $"Signal '{signal.SignalName}' removed successfully.";
             }
@@ -116,6 +144,8 @@ namespace AssetHierarchyWebAPI.Services
 
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
+                await LogAuditAsync("Updated Signal", signal.SignalId, signal.SignalName);
+                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Signal {signal.SignalName} is Updated");
                 return $"Signal '{signal.SignalName}' updated successfully.";
             }
             catch (Exception ex)

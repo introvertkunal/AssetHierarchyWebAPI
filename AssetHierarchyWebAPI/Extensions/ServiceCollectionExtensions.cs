@@ -1,5 +1,6 @@
 ﻿using AssetHierarchyWebAPI.Context;
 using AssetHierarchyWebAPI.Controllers;
+using AssetHierarchyWebAPI.Hubs;
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace AssetHierarchyWebAPI.Extensions
             else if (format == "db")
             {
                 services.AddScoped<IAssetSignal, DBAssetSignalService>();
+               
                 services.AddScoped<IAssetHierarchyService, DBAssetHierarchyService>();
                 services.AddDbContext<AssetContext>(options => options.UseSqlServer(configuration.GetConnectionString("AssetConnStr")));
             }

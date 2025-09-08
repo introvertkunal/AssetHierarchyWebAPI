@@ -1,5 +1,6 @@
 using AssetHierarchyWebAPI.Data;
 using AssetHierarchyWebAPI.Extensions;
+using AssetHierarchyWebAPI.Hubs;
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Services;
 using Microsoft.AspNetCore.Identity;
@@ -7,20 +8,26 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
+    options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.AllowAnyOrigin()
+            policy.WithOrigins("http://localhost:5173") 
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 
 builder.Services.AddAssetHierarchyService(builder.Configuration);
 
 builder.Services.AddIdentityServices(builder.Configuration);
+
+builder.Services.AddHttpContextAccessor();
+
 
 builder.Host.UseSerilog((context, config) =>
 {
@@ -31,14 +38,24 @@ builder.Host.UseSerilog((context, config) =>
 builder.Services.AddControllers()
     .AddXmlSerializerFormatters();
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+app.UseRouting();
 
-app.UseMiddleware<AssetHierarchyWebAPI.Middlewares.MissingNameLoggingMiddleware>();
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<AssetHierarchyWebAPI.Middlewares.MissingNameLoggingMiddleware>();
+
+
+app.MapControllers();
+
+app.MapHub<NotificationHub>("/notificationHub");
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -49,6 +66,5 @@ using (var scope = app.Services.CreateScope())
     await IdentitySeeder.SeedAsync(roleManager, userManager);
 }
 
-app.MapControllers();
 
 app.Run();

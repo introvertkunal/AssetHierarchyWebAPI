@@ -1,11 +1,17 @@
 ﻿using AssetHierarchyWebAPI.Context;
+using AssetHierarchyWebAPI.Hubs;
 using AssetHierarchyWebAPI.Interfaces;
 using AssetHierarchyWebAPI.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Linq.Expressions;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using static Azure.Core.HttpHeader;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 
 namespace AssetHierarchyWebAPI.Services
@@ -14,15 +20,32 @@ namespace AssetHierarchyWebAPI.Services
     {
         private readonly AssetContext _context;
         private const string FilePath_json = "asset_hierarchy.json";
-        private readonly IAssetHierarchyService _service;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHubContext<NotificationHub> _hubcontext;
 
-        public DBAssetHierarchyService(AssetContext context, IAssetHierarchyService service)
+        public DBAssetHierarchyService(AssetContext context, IHttpContextAccessor httpContextAccessor, IHubContext<NotificationHub> hubcontext)
         {
             _context = context;
-            _service = service;
+            _httpContextAccessor = httpContextAccessor;
+            _hubcontext = hubcontext;
         }
 
-       
+        private async Task LogAuditAsync(string operation, int? entityId, string? entityName)
+        {
+            var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Unknown";
+
+            var log = new AuditLog
+            {
+                UserName = userName,
+                Operation = operation,
+                EntityId = entityId,
+                EntityName = entityName,
+                Timestamp = DateTime.UtcNow
+            };
+
+            _context.AuditLogs.Add(log);
+            await _context.SaveChangesAsync();
+        }
 
 
         private bool IsValidName(string name)
@@ -48,7 +71,8 @@ namespace AssetHierarchyWebAPI.Services
                 await _context.AssetHierarchy.AddAsync(newNode);
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
-
+                await LogAuditAsync("Added Node", newNode.Id, newNode.Name);
+                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"New Asset {name} is Added");
                 return $"Asset {name} added successfully.";
             }
             catch (Exception ex)
@@ -125,6 +149,8 @@ namespace AssetHierarchyWebAPI.Services
             }
 
             _context.AssetHierarchy.Remove(node);
+            await LogAuditAsync("Removed Node", node.Id, node.Name);
+            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Asset {node.Name} is Removed");
         }
 
 
@@ -148,6 +174,8 @@ namespace AssetHierarchyWebAPI.Services
 
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
+                await LogAuditAsync($"Update Node to new name {newName}", node.Id, prevName);
+                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Asset {prevName} rename to Asset {newName}");
                 return $"{prevName} renamed to {node.Name}.";
             }
             catch (Exception ex)
@@ -180,6 +208,8 @@ namespace AssetHierarchyWebAPI.Services
                 node.ParentId = newParentId;
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
+                await LogAuditAsync($"Reorder Node to new ParentId {newParentId}", node.Id, node.Name);
+                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Asset {node.Name} move to under Asset Id {newParentId}");
 
                 return "Node reordered successfully.";
             }
@@ -229,21 +259,37 @@ namespace AssetHierarchyWebAPI.Services
                     await file.CopyToAsync(stream1);
                 }
 
-                // read the uploaded file content
-                using var stream = new StreamReader(file.OpenReadStream());
-                var json = await stream.ReadToEndAsync();
-
                 // strict deserialization settings
                 var settings = new JsonSerializerSettings
                 {
-                    MissingMemberHandling = MissingMemberHandling.Error, 
-                    NullValueHandling = NullValueHandling.Ignore         
+                    MissingMemberHandling = MissingMemberHandling.Error,
+                    NullValueHandling = NullValueHandling.Ignore
                 };
 
-                // try deserializing – throws if required field missing or unknown field present
-                var nodes = JsonConvert.DeserializeObject<List<AssetNode>>(json, settings);
+                // validate JSON with duplicate key check
+                file.OpenReadStream().Seek(0, SeekOrigin.Begin); // rewind stream
+                using var reader = new DuplicateKeyCheckingReader(new StreamReader(file.OpenReadStream()));
+                var serializer = JsonSerializer.Create(settings);
+                var nodes = serializer.Deserialize<List<AssetNode>>(reader);
+
                 if (nodes == null || nodes.Count == 0)
                     throw new Exception("No nodes found in JSON");
+
+                var allNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                void ValidateUniqueNames(IEnumerable<AssetNode> nodes)
+                {
+                    foreach (var node in nodes)
+                    {
+                        if (!allNames.Add(node.Name))
+                            throw new Exception($"Duplicate asset name '{node.Name}' found in JSON.");
+
+                        if (node.Children != null && node.Children.Any())
+                            ValidateUniqueNames(node.Children);
+                    }
+                }
+
+                ValidateUniqueNames(nodes);
+
 
                 // clear old data
                 _context.AssetSignal.RemoveRange(_context.AssetSignal);
@@ -261,8 +307,19 @@ namespace AssetHierarchyWebAPI.Services
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
+                await LogAuditAsync("JSON File is Uploaded", null, null);
+
                 return "JSON File Uploaded Successfully";
             }
+
+            catch (JsonReaderException jex)
+            {
+                // Duplicate key or JSON parsing issue
+                await transaction.RollbackAsync();
+                
+                return "JSON File Contains Duplicate Keys";
+            }
+
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
@@ -271,27 +328,33 @@ namespace AssetHierarchyWebAPI.Services
         }
 
 
+
         private async Task InsertNodeRecursive(AssetNode node, int? newParentId)
         {
-            var result = await AddNodeAsync(node.Name, newParentId);
-
-            if (result.StartsWith("Invalid asset name") || result.Contains("failed", StringComparison.OrdinalIgnoreCase))
-                throw new Exception(result); 
-
-            var newNode = await _context.AssetHierarchy.FirstOrDefaultAsync(n => n.Name == node.Name && n.ParentId == newParentId);
-
-            if (newNode == null)
-                throw new Exception("Failed to insert node during JSON import.");
+            if (!IsValidName(node.Name))
+                throw new Exception($"Invalid asset name '{node.Name}'. Name must start with a letter and contain only letters, digits, or spaces.");
 
 
+            var newNode = new AssetNode
+            {
+                Name = node.Name,
+                ParentId = newParentId
+            };
+
+            await _context.AssetHierarchy.AddAsync(newNode);
+            await _context.SaveChangesAsync(); 
+
+ 
             if (node.Signals != null && node.Signals.Any())
             {
                 foreach (var signal in node.Signals)
                 {
-                    
+                    if (!IsValidName(signal.SignalName))
+                        throw new Exception($"Invalid signal name '{signal.SignalName}'.");
+
+   
                     var newSignal = new AssetSignals
                     {
-                        
                         SignalName = signal.SignalName,
                         SignalType = signal.SignalType,
                         Description = signal.Description,
@@ -301,7 +364,6 @@ namespace AssetHierarchyWebAPI.Services
                 }
                 await _context.SaveChangesAsync();
             }
-
 
             if (node.Children != null && node.Children.Any())
             {
@@ -330,6 +392,8 @@ namespace AssetHierarchyWebAPI.Services
                                                    .Select(n => n.Name)
                                                    .FirstOrDefaultAsync()
                     : null;
+
+                
 
                 return new AssetSearchResult
                 {
@@ -389,5 +453,42 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
+        public class DuplicateKeyCheckingReader : JsonTextReader
+        {
+
+            private readonly Stack<HashSet<string>> _keys = new Stack<HashSet<string>>();
+
+            public DuplicateKeyCheckingReader(TextReader reader) : base(reader) { }
+
+            public override bool Read()
+            {
+                var result = base.Read();
+
+                if (TokenType == JsonToken.StartObject)
+                {
+                    _keys.Push(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+                }
+                else if (TokenType == JsonToken.PropertyName)
+                {
+                    var currentKey = Value?.ToString();
+                    if (_keys.Count > 0)
+                    {
+                        var currentObjectKeys = _keys.Peek();
+                        if (!currentObjectKeys.Add(currentKey))
+                        {
+                            throw new JsonReaderException($"Duplicate key detected: '{currentKey}'");
+                        }
+                    }
+                }
+                else if (TokenType == JsonToken.EndObject)
+                {
+                    _keys.Pop();
+                }
+
+                return result;
+            }
+
+          }
+            
     }
 }

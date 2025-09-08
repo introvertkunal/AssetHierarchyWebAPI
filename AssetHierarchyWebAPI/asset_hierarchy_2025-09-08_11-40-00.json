@@ -1,8 +1,10 @@
 [
   {
     "Id": 1,
-    "Name": "&^%$%Alpha",
- 
+    "Name": "FactoryAlpha",
+    "Name": "FactoryAlpha",
+   
+    "ParentId" : null,
     "Children": [
       {
         "Id": 2,
@@ -383,6 +385,7 @@
               }
             ]
           }
+
         ],
         "Signals": [
           {

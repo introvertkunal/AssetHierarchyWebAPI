@@ -109,7 +109,7 @@ namespace AssetHierarchyWebAPI.Controllers
                 var result = await _service.ReplaceJsonFileAsync(file);
                 return Ok(result); 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest("File is not in Correct Format");
             }

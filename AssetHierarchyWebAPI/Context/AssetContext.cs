@@ -10,6 +10,8 @@ namespace AssetHierarchyWebAPI.Context
 
         public DbSet<AssetNode> AssetHierarchy { get; set; }
         public DbSet<AssetSignals> AssetSignal { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
