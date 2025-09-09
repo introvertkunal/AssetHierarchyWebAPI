@@ -41,7 +41,7 @@ builder.Host.UseSerilog((context, config) =>
 builder.Services.AddControllers()
     .AddXmlSerializerFormatters();
 
-builder.Services.AddSingleton<INotificationStore, InMemoryNotificationStore>();
+//builder.Services.AddSingleton<INotificationStore, InMemoryNotificationStore>();
 
 builder.Services.AddSignalR();
 

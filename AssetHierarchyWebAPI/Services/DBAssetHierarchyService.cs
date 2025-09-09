@@ -16,18 +16,18 @@ namespace AssetHierarchyWebAPI.Services
         private const string FilePath_json = "asset_hierarchy.json";
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHubContext<NotificationHub> _hubcontext;
-        private readonly INotificationStore _notificationStore;
+        //private readonly INotificationStore _notificationStore;
         public DBAssetHierarchyService(
             AssetContext context, 
             IHttpContextAccessor httpContextAccessor, 
-            IHubContext<NotificationHub> hubcontext,
-            INotificationStore notificationStore
+            IHubContext<NotificationHub> hubcontext
+            //INotificationStore notificationStore
             )
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _hubcontext = hubcontext;
-            _notificationStore = notificationStore;
+            //_notificationStore = notificationStore;
         }
 
         private async Task LogAuditAsync(string operation, int? entityId, string? entityName)
@@ -54,16 +54,8 @@ namespace AssetHierarchyWebAPI.Services
 
         private async Task SendNotificationAsync(string message)
         {
-            // Add notification to store
-            int id = _notificationStore.AddNotification(message);
-
-            // Send to all currently connected clients
-
-            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", message);
-
-
-
-
+            //int id = _notificationStore.AddNotification(message);
+            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", message);  // Change: Send id and message
         }
 
 
