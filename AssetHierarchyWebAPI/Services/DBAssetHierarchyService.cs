@@ -5,14 +5,8 @@ using AssetHierarchyWebAPI.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System.Linq.Expressions;
-using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using static Azure.Core.HttpHeader;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
-
 
 namespace AssetHierarchyWebAPI.Services
 {
@@ -22,12 +16,18 @@ namespace AssetHierarchyWebAPI.Services
         private const string FilePath_json = "asset_hierarchy.json";
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHubContext<NotificationHub> _hubcontext;
-
-        public DBAssetHierarchyService(AssetContext context, IHttpContextAccessor httpContextAccessor, IHubContext<NotificationHub> hubcontext)
+        private readonly INotificationStore _notificationStore;
+        public DBAssetHierarchyService(
+            AssetContext context, 
+            IHttpContextAccessor httpContextAccessor, 
+            IHubContext<NotificationHub> hubcontext,
+            INotificationStore notificationStore
+            )
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _hubcontext = hubcontext;
+            _notificationStore = notificationStore;
         }
 
         private async Task LogAuditAsync(string operation, int? entityId, string? entityName)
@@ -47,11 +47,25 @@ namespace AssetHierarchyWebAPI.Services
             await _context.SaveChangesAsync();
         }
 
-
         private bool IsValidName(string name)
         {
             return Regex.IsMatch(name, @"^[A-Za-z][A-Za-z0-9 ]*$");
         }
+
+        private async Task SendNotificationAsync(string message)
+        {
+            // Add notification to store
+            int id = _notificationStore.AddNotification(message);
+
+            // Send to all currently connected clients
+
+            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", message);
+
+
+
+
+        }
+
 
         // Add Node
         public async Task<string> AddNodeAsync(string name, int? parentId)
@@ -59,7 +73,7 @@ namespace AssetHierarchyWebAPI.Services
             try
             {
                 if (!IsValidName(name))
-                    return $"Invalid asset name '{name}'. Name must start with a letter and contain only letters, digits, or spaces.";
+                    return $"Invalid asset name '{name}'.";
 
                 if (await _context.AssetHierarchy.AnyAsync(n => n.Name == name))
                     return $"Asset '{name}' already exists.";
@@ -70,9 +84,16 @@ namespace AssetHierarchyWebAPI.Services
                 var newNode = new AssetNode { Name = name, ParentId = parentId };
                 await _context.AssetHierarchy.AddAsync(newNode);
                 await _context.SaveChangesAsync();
+
                 await UpdateJsonFileAsync();
                 await LogAuditAsync("Added Node", newNode.Id, newNode.Name);
-                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"New Asset {name} is Added");
+
+                string parentName = parentId != null
+                    ? await _context.AssetHierarchy.Where(p => p.Id == parentId).Select(p => p.Name).FirstOrDefaultAsync()
+                    : "Root";
+
+                await SendNotificationAsync($"New Asset '{name}' added under '{parentName}'");
+
                 return $"Asset {name} added successfully.";
             }
             catch (Exception ex)
@@ -113,7 +134,7 @@ namespace AssetHierarchyWebAPI.Services
                 .ToList();
         }
 
-        // Remove Node (cascade handles children/signals)
+        // Remove Node
         public async Task<string> RemoveNodeAsync(int id)
         {
             try
@@ -140,7 +161,6 @@ namespace AssetHierarchyWebAPI.Services
 
         private async Task DeleteNodeRecursive(AssetNode node)
         {
-            // Load children explicitly
             await _context.Entry(node).Collection(n => n.Children).LoadAsync();
 
             foreach (var child in node.Children.ToList())
@@ -148,11 +168,15 @@ namespace AssetHierarchyWebAPI.Services
                 await DeleteNodeRecursive(child);
             }
 
+            string parentName = node.ParentId != null
+                ? await _context.AssetHierarchy.Where(p => p.Id == node.ParentId).Select(p => p.Name).FirstOrDefaultAsync()
+                : "Root";
+
             _context.AssetHierarchy.Remove(node);
             await LogAuditAsync("Removed Node", node.Id, node.Name);
-            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Asset {node.Name} is Removed");
-        }
 
+            await SendNotificationAsync($"Asset '{node.Name}' removed from '{parentName}'");
+        }
 
         // Update Node Name
         public async Task<string> UpdateNode(int id, string newName)
@@ -160,14 +184,14 @@ namespace AssetHierarchyWebAPI.Services
             try
             {
                 if (!IsValidName(newName))
-                    return $"Invalid asset name '{newName}'. Name must start with a letter and contain only letters, digits, or spaces.";
+                    return $"Invalid asset name '{newName}'.";
 
-                var node = await _context.AssetHierarchy.FindAsync(id);
+                var node = await _context.AssetHierarchy.Include(n => n.Parent).FirstOrDefaultAsync(n => n.Id == id);
                 if (node == null)
                     return $"Asset with ID {id} does not exist.";
 
                 if (await _context.AssetHierarchy.AnyAsync(n => n.Name == newName && n.Id != id))
-                    return $"Asset name '{newName}' already exists. Choose a different name.";
+                    return $"Asset name '{newName}' already exists.";
 
                 var prevName = node.Name;
                 node.Name = newName;
@@ -175,7 +199,10 @@ namespace AssetHierarchyWebAPI.Services
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
                 await LogAuditAsync($"Update Node to new name {newName}", node.Id, prevName);
-                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Asset {prevName} rename to Asset {newName}");
+
+                string parentName = node.Parent?.Name ?? "Root";
+                await SendNotificationAsync($"Asset '{prevName}' renamed to '{newName}' under '{parentName}'");
+
                 return $"{prevName} renamed to {node.Name}.";
             }
             catch (Exception ex)
@@ -205,11 +232,20 @@ namespace AssetHierarchyWebAPI.Services
                         return "Invalid move: cannot assign descendant as parent.";
                 }
 
+                var oldParentName = node.ParentId != null
+                    ? await _context.AssetHierarchy.Where(p => p.Id == node.ParentId).Select(p => p.Name).FirstOrDefaultAsync()
+                    : "Root";
+
                 node.ParentId = newParentId;
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
                 await LogAuditAsync($"Reorder Node to new ParentId {newParentId}", node.Id, node.Name);
-                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Asset {node.Name} move to under Asset Id {newParentId}");
+
+                var newParentName = newParentId != null
+                    ? await _context.AssetHierarchy.Where(p => p.Id == newParentId).Select(p => p.Name).FirstOrDefaultAsync()
+                    : "Root";
+
+                await SendNotificationAsync($"Asset '{node.Name}' moved from '{oldParentName}' to '{newParentName}'");
 
                 return "Node reordered successfully.";
             }
@@ -232,7 +268,7 @@ namespace AssetHierarchyWebAPI.Services
             return false;
         }
 
-        // Replace hierarchy from JSON (with transaction & rollback)
+        // Replace hierarchy from JSON
         public async Task<string> ReplaceJsonFileAsync(IFormFile file)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -243,7 +279,6 @@ namespace AssetHierarchyWebAPI.Services
                 string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fullPath);
                 string extension = Path.GetExtension(fullPath);
 
-                // backup old file
                 if (File.Exists(fullPath))
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
@@ -253,21 +288,18 @@ namespace AssetHierarchyWebAPI.Services
                     CleanupOldBackups(directory, fileNameWithoutExt, extension, keepLast: 5);
                 }
 
-                // save new file physically
                 using (var stream1 = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
                 {
                     await file.CopyToAsync(stream1);
                 }
 
-                // strict deserialization settings
                 var settings = new JsonSerializerSettings
                 {
                     MissingMemberHandling = MissingMemberHandling.Error,
                     NullValueHandling = NullValueHandling.Ignore
                 };
 
-                // validate JSON with duplicate key check
-                file.OpenReadStream().Seek(0, SeekOrigin.Begin); // rewind stream
+                file.OpenReadStream().Seek(0, SeekOrigin.Begin);
                 using var reader = new DuplicateKeyCheckingReader(new StreamReader(file.OpenReadStream()));
                 var serializer = JsonSerializer.Create(settings);
                 var nodes = serializer.Deserialize<List<AssetNode>>(reader);
@@ -290,8 +322,6 @@ namespace AssetHierarchyWebAPI.Services
 
                 ValidateUniqueNames(nodes);
 
-
-                // clear old data
                 _context.AssetSignal.RemoveRange(_context.AssetSignal);
                 _context.AssetHierarchy.RemoveRange(_context.AssetHierarchy);
 
@@ -299,7 +329,6 @@ namespace AssetHierarchyWebAPI.Services
                 await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetSignal', RESEED, 0)");
                 await _context.SaveChangesAsync();
 
-                // insert new hierarchy
                 foreach (var node in nodes.Where(n => n.ParentId == null))
                 {
                     await InsertNodeRecursive(node, null);
@@ -311,29 +340,22 @@ namespace AssetHierarchyWebAPI.Services
 
                 return "JSON File Uploaded Successfully";
             }
-
-            catch (JsonReaderException jex)
+            catch (JsonReaderException)
             {
-                // Duplicate key or JSON parsing issue
                 await transaction.RollbackAsync();
-                
                 return "JSON File Contains Duplicate Keys";
             }
-
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 return "JSON File is not in Correct Format";
             }
         }
 
-
-
         private async Task InsertNodeRecursive(AssetNode node, int? newParentId)
         {
             if (!IsValidName(node.Name))
-                throw new Exception($"Invalid asset name '{node.Name}'. Name must start with a letter and contain only letters, digits, or spaces.");
-
+                throw new Exception($"Invalid asset name '{node.Name}'.");
 
             var newNode = new AssetNode
             {
@@ -342,9 +364,8 @@ namespace AssetHierarchyWebAPI.Services
             };
 
             await _context.AssetHierarchy.AddAsync(newNode);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
- 
             if (node.Signals != null && node.Signals.Any())
             {
                 foreach (var signal in node.Signals)
@@ -352,7 +373,6 @@ namespace AssetHierarchyWebAPI.Services
                     if (!IsValidName(signal.SignalName))
                         throw new Exception($"Invalid signal name '{signal.SignalName}'.");
 
-   
                     var newSignal = new AssetSignals
                     {
                         SignalName = signal.SignalName,
@@ -374,8 +394,7 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
-
-        // Search Node + Signals
+        // Search Node
         public async Task<AssetSearchResult?> SearchNode(string name)
         {
             try
@@ -392,8 +411,6 @@ namespace AssetHierarchyWebAPI.Services
                                                    .Select(n => n.Name)
                                                    .FirstOrDefaultAsync()
                     : null;
-
-                
 
                 return new AssetSearchResult
                 {
@@ -430,7 +447,6 @@ namespace AssetHierarchyWebAPI.Services
             }
         }
 
-        // Update JSON file after any change
         private async Task UpdateJsonFileAsync()
         {
             try
@@ -440,11 +456,8 @@ namespace AssetHierarchyWebAPI.Services
                                              .Include(n => n.Children)
                                              .ToListAsync();
 
-                
                 var hierarchy = BuildHierarchy(allNodes, null);
-
                 var json = JsonConvert.SerializeObject(hierarchy, Formatting.Indented);
-
                 await File.WriteAllTextAsync(FilePath_json, json);
             }
             catch (Exception ex)
@@ -455,7 +468,6 @@ namespace AssetHierarchyWebAPI.Services
 
         public class DuplicateKeyCheckingReader : JsonTextReader
         {
-
             private readonly Stack<HashSet<string>> _keys = new Stack<HashSet<string>>();
 
             public DuplicateKeyCheckingReader(TextReader reader) : base(reader) { }
@@ -487,8 +499,6 @@ namespace AssetHierarchyWebAPI.Services
 
                 return result;
             }
-
-          }
-            
+        }
     }
 }

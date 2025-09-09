@@ -1,78 +1,19 @@
 [
   {
-    "Id": 1,
-    "Name": "FactoryAlpha",
-    "ParentId": null,
-    "Parent": null,
-    "Children": [
-      {
-        "Id": 2,
-        "Name": "Alpha",
-        "ParentId": 1,
-        "Parent": null,
-        "Children": [
-          {
-            "Id": 3,
-            "Name": "Station1",
-            "ParentId": 2,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          },
-          {
-            "Id": 4,
-            "Name": "Station2",
-            "ParentId": 2,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          }
-        ],
-        "Signals": []
-      },
-      {
-        "Id": 5,
-        "Name": "ProductionLineB",
-        "ParentId": 1,
-        "Parent": null,
-        "Children": [
-          {
-            "Id": 6,
-            "Name": "Station3",
-            "ParentId": 5,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          },
-          {
-            "Id": 7,
-            "Name": "Station4",
-            "ParentId": 5,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          }
-        ],
-        "Signals": []
-      }
-    ],
-    "Signals": []
-  },
-  {
     "Id": 8,
-    "Name": "FactoryBeta",
+    "Name": "AutomobileFactory",
     "ParentId": null,
     "Parent": null,
     "Children": [
       {
         "Id": 9,
-        "Name": "AssemblyUnit1",
+        "Name": "WeldingUnit",
         "ParentId": 8,
         "Parent": null,
         "Children": [
           {
             "Id": 10,
-            "Name": "RobotArm1",
+            "Name": "RobotWelder1",
             "ParentId": 9,
             "Parent": null,
             "Children": [],
@@ -80,7 +21,7 @@
           },
           {
             "Id": 11,
-            "Name": "RobotArm2",
+            "Name": "RobotWelder2",
             "ParentId": 9,
             "Parent": null,
             "Children": [],
@@ -91,13 +32,13 @@
       },
       {
         "Id": 12,
-        "Name": "AssemblyUnit2",
+        "Name": "PaintingShop",
         "ParentId": 8,
         "Parent": null,
         "Children": [
           {
             "Id": 13,
-            "Name": "RobotArm3",
+            "Name": "SprayBooth1",
             "ParentId": 12,
             "Parent": null,
             "Children": [],
@@ -105,7 +46,7 @@
           },
           {
             "Id": 14,
-            "Name": "RobotArm4",
+            "Name": "SprayBooth2",
             "ParentId": 12,
             "Parent": null,
             "Children": [],
@@ -119,44 +60,19 @@
   },
   {
     "Id": 15,
-    "Name": "FactoryGamma",
+    "Name": "FoodProcessingPlant",
     "ParentId": null,
     "Parent": null,
     "Children": [
       {
-        "Id": 16,
-        "Name": "Warehouse1",
-        "ParentId": 15,
-        "Parent": null,
-        "Children": [
-          {
-            "Id": 17,
-            "Name": "ColdStorage",
-            "ParentId": 16,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          },
-          {
-            "Id": 18,
-            "Name": "DryStorage",
-            "ParentId": 16,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          }
-        ],
-        "Signals": []
-      },
-      {
         "Id": 19,
-        "Name": "Warehouse2",
+        "Name": "PackagingLine",
         "ParentId": 15,
         "Parent": null,
         "Children": [
           {
             "Id": 20,
-            "Name": "RackA",
+            "Name": "CartonSealer",
             "ParentId": 19,
             "Parent": null,
             "Children": [],
@@ -164,7 +80,7 @@
           },
           {
             "Id": 21,
-            "Name": "RackB",
+            "Name": "LabelPrinter",
             "ParentId": 19,
             "Parent": null,
             "Children": [],
@@ -178,19 +94,19 @@
   },
   {
     "Id": 22,
-    "Name": "FactoryDelta",
+    "Name": "ChemicalPlant",
     "ParentId": null,
     "Parent": null,
     "Children": [
       {
         "Id": 23,
-        "Name": "MaintenanceDept",
+        "Name": "ReactorSection",
         "ParentId": 22,
         "Parent": null,
         "Children": [
           {
             "Id": 24,
-            "Name": "Electrical",
+            "Name": "Reactor1",
             "ParentId": 23,
             "Parent": null,
             "Children": [],
@@ -198,7 +114,15 @@
           },
           {
             "Id": 25,
-            "Name": "Mechanical",
+            "Name": "Reactor 7",
+            "ParentId": 23,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 34,
+            "Name": "kunal",
             "ParentId": 23,
             "Parent": null,
             "Children": [],
@@ -209,64 +133,40 @@
       },
       {
         "Id": 26,
-        "Name": "SafetyDept",
+        "Name": "SafetySystem",
         "ParentId": 22,
         "Parent": null,
         "Children": [
           {
             "Id": 27,
-            "Name": "FireSafety",
+            "Name": "FireSuppression",
             "ParentId": 26,
             "Parent": null,
-            "Children": [],
+            "Children": [
+              {
+                "Id": 28,
+                "Name": "GasDetection",
+                "ParentId": 27,
+                "Parent": null,
+                "Children": [
+                  {
+                    "Id": 36,
+                    "Name": "Kuna",
+                    "ParentId": 28,
+                    "Parent": null,
+                    "Children": [],
+                    "Signals": []
+                  }
+                ],
+                "Signals": []
+              }
+            ],
             "Signals": []
           },
           {
-            "Id": 28,
-            "Name": "HealthSafety",
+            "Id": 37,
+            "Name": "oper",
             "ParentId": 26,
-            "Parent": null,
-            "Children": [],
-            "Signals": []
-          }
-        ],
-        "Signals": []
-      }
-    ],
-    "Signals": []
-  },
-  {
-    "Id": 29,
-    "Name": "Latthe",
-    "ParentId": null,
-    "Parent": null,
-    "Children": [],
-    "Signals": []
-  },
-  {
-    "Id": 31,
-    "Name": "afeas",
-    "ParentId": null,
-    "Parent": null,
-    "Children": [],
-    "Signals": []
-  },
-  {
-    "Id": 32,
-    "Name": "jrfyj",
-    "ParentId": null,
-    "Parent": null,
-    "Children": [
-      {
-        "Id": 33,
-        "Name": "kunal singh is added",
-        "ParentId": 32,
-        "Parent": null,
-        "Children": [
-          {
-            "Id": 39,
-            "Name": "child",
-            "ParentId": 33,
             "Parent": null,
             "Children": [],
             "Signals": []

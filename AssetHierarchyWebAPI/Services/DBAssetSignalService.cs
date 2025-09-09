@@ -6,12 +6,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace AssetHierarchyWebAPI.Services
 {
-
-    
     public class DBAssetSignalService : IAssetSignal
     {
         private readonly AssetContext _context;
@@ -54,16 +51,21 @@ namespace AssetHierarchyWebAPI.Services
             await _context.SaveChangesAsync();
         }
 
+        private async Task SendNotificationAsync(string message)
+        {
+            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", message);
+        }
+
         // Add a new signal under a given AssetNode
         public async Task<string> AddSignalAsync(int assetId, AssetSignals signal)
         {
             try
             {
                 if (!IsValidName(signal.SignalName))
-                    return $"Invalid asset name '{signal.SignalName}'. Name must start with a letter and contain only letters, digits, or spaces.";
+                    return $"Invalid signal name '{signal.SignalName}'.";
 
                 if (!IsValidName(signal.Description))
-                    return $"Invalid asset description must start with a letter and contain only letters, digits, or spaces.";
+                    return $"Invalid signal description '{signal.Description}'.";
 
                 var node = await _context.AssetHierarchy.FindAsync(assetId);
                 if (node == null)
@@ -76,7 +78,7 @@ namespace AssetHierarchyWebAPI.Services
                     .AnyAsync(s => s.AssetNodeId == assetId && s.SignalName == signal.SignalName);
 
                 if (exists)
-                    return $"Signal '{signal.SignalName}' already exists under Asset {node.Name}.";
+                    return $"Signal '{signal.SignalName}' already exists under Asset '{node.Name}'.";
 
                 signal.AssetNodeId = assetId;
 
@@ -84,7 +86,8 @@ namespace AssetHierarchyWebAPI.Services
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
                 await LogAuditAsync($"Added Signal under Asset {assetId}", signal.SignalId, signal.SignalName);
-                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"New Signal {signal.SignalName} is added under Asset {node.Name}");
+
+                await SendNotificationAsync($"New Signal '{signal.SignalName}' ({signal.SignalType}) added under Asset '{node.Name}'");
 
                 return $"Signal '{signal.SignalName}' added to Asset '{node.Name}'.";
             }
@@ -99,15 +102,18 @@ namespace AssetHierarchyWebAPI.Services
         {
             try
             {
-                var signal = await _context.AssetSignal.FindAsync(signalId);
+                var signal = await _context.AssetSignal.Include(s => s.AssetNode).FirstOrDefaultAsync(s => s.SignalId == signalId);
                 if (signal == null)
                     return $"Signal with Id {signalId} not found.";
+
+                string parentName = signal.AssetNode?.Name ?? "Unknown";
 
                 _context.AssetSignal.Remove(signal);
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
                 await LogAuditAsync("Removed Signal", signal.SignalId, signal.SignalName);
-                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Signal {signal.SignalName} is removed");
+
+                await SendNotificationAsync($"Signal '{signal.SignalName}' removed from Asset '{parentName}'");
 
                 return $"Signal '{signal.SignalName}' removed successfully.";
             }
@@ -122,7 +128,7 @@ namespace AssetHierarchyWebAPI.Services
         {
             try
             {
-                var signal = await _context.AssetSignal.FindAsync(signalId);
+                var signal = await _context.AssetSignal.Include(s => s.AssetNode).FirstOrDefaultAsync(s => s.SignalId == signalId);
                 if (signal == null)
                     return $"Signal with Id {signalId} not found.";
 
@@ -138,6 +144,9 @@ namespace AssetHierarchyWebAPI.Services
                 if (exists)
                     return $"Signal '{updatedSignal.SignalName}' already exists under this asset.";
 
+                string oldName = signal.SignalName;
+                string parentName = signal.AssetNode?.Name ?? "Unknown";
+
                 signal.SignalName = updatedSignal.SignalName;
                 signal.SignalType = updatedSignal.SignalType;
                 signal.Description = updatedSignal.Description;
@@ -145,7 +154,9 @@ namespace AssetHierarchyWebAPI.Services
                 await _context.SaveChangesAsync();
                 await UpdateJsonFileAsync();
                 await LogAuditAsync("Updated Signal", signal.SignalId, signal.SignalName);
-                await _hubcontext.Clients.All.SendAsync("ReceiveNotification", $"Signal {signal.SignalName} is Updated");
+
+                await SendNotificationAsync($"Signal '{oldName}' updated to '{signal.SignalName}' ({signal.SignalType}) under Asset '{parentName}'");
+
                 return $"Signal '{signal.SignalName}' updated successfully.";
             }
             catch (Exception ex)
@@ -183,9 +194,7 @@ namespace AssetHierarchyWebAPI.Services
                                              .Include(n => n.Children)
                                              .ToListAsync();
 
-
                 var hierarchy = BuildHierarchy(allNodes, null);
-
                 var json = JsonConvert.SerializeObject(hierarchy, Formatting.Indented);
 
                 await File.WriteAllTextAsync(FilePath_json, json);
@@ -195,6 +204,7 @@ namespace AssetHierarchyWebAPI.Services
                 Console.WriteLine($"Error updating JSON file: {ex.Message}");
             }
         }
+
         private List<AssetNode> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
         {
             return allNodes
@@ -204,7 +214,7 @@ namespace AssetHierarchyWebAPI.Services
                     Id = n.Id,
                     Name = n.Name,
                     ParentId = n.ParentId,
-                    
+
                     Signals = n.Signals?.Select(s => new AssetSignals
                     {
                         SignalId = s.SignalId,
@@ -213,11 +223,10 @@ namespace AssetHierarchyWebAPI.Services
                         Description = s.Description,
                         AssetNodeId = s.AssetNodeId
                     }).ToList(),
-                    
+
                     Children = BuildHierarchy(allNodes, n.Id)
                 })
                 .ToList();
         }
-
     }
 }
