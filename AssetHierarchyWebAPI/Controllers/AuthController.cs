@@ -1,10 +1,11 @@
 ﻿using AssetHierarchyWebAPI.Models;
+using AssetHierarchyWebAPI.Models.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using AssetHierarchyWebAPI.Models.Auth;
 using System.Text;
 
 namespace AssetHierarchyWebAPI.Controllers
@@ -88,11 +89,74 @@ namespace AssetHierarchyWebAPI.Controllers
                 );
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                return Ok(new { token = tokenString });
+
+                // Set HTTP-only cookie
+                Response.Cookies.Append("auth_token", tokenString, new CookieOptions
+                {
+                    HttpOnly = true, 
+                    Secure = true,  
+                    SameSite = SameSiteMode.Strict, // Prevent CSRF
+                    Expires = DateTime.UtcNow.AddHours(2) 
+                });
+
+               
+                return Ok(new
+                {
+                    userName = user.UserName,
+                    roles = userRoles
+                });
+
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred during login: {ex.Message}");
+            }
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            try
+            {
+                // Delete the auth_token cookie
+                Response.Cookies.Delete("auth_token");
+                return Ok("Logged out successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred during logout: {ex.Message}");
+            }
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                // Get the user ID from the JWT claims
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("User ID not found in token.");
+
+                // Fetch the user from the database
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                    return Unauthorized("User not found.");
+
+                // Get the user's roles
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                // Return user information
+                return Ok(new
+                {
+                    userName = user.UserName,
+                    roles = userRoles
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while fetching user data: {ex.Message}");
             }
         }
     }

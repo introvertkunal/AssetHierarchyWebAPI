@@ -1,0 +1,45 @@
+[
+  {
+    "Id": 15,
+    "Name": "FoodProcessingPlant",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [
+      {
+        "Id": 19,
+        "Name": "PackagingLine",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 20,
+            "Name": "CartonSealer",
+            "ParentId": 19,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 21,
+            "Name": "LabelPrinter",
+            "ParentId": 19,
+            "Parent": null,
+            "Children": [
+              {
+                "Id": 42,
+                "Name": "printer",
+                "ParentId": 21,
+                "Parent": null,
+                "Children": [],
+                "Signals": []
+              }
+            ],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      }
+    ],
+    "Signals": []
+  }
+]
