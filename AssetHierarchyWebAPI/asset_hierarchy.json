@@ -24,21 +24,22 @@
             "Name": "LabelPrinter",
             "ParentId": 19,
             "Parent": null,
-            "Children": [],
+            "Children": [
+              {
+                "Id": 42,
+                "Name": "printer",
+                "ParentId": 21,
+                "Parent": null,
+                "Children": [],
+                "Signals": []
+              }
+            ],
             "Signals": []
           }
         ],
         "Signals": []
       }
     ],
-    "Signals": []
-  },
-  {
-    "Id": 40,
-    "Name": "kunal",
-    "ParentId": null,
-    "Parent": null,
-    "Children": [],
     "Signals": []
   }
 ]
