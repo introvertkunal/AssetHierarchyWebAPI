@@ -1,41 +1,39 @@
 [
   {
     "Id": 1,
-    "Name": "FactoryAlpha",
- 
-   
-    "ParentId" : null,
+    "Name": "SteelPlant",
+    "ParentId": null,
     "Children": [
       {
         "Id": 2,
-        "Name": "FactoryAlpha",
+        "Name": "BlastFurnace",
         "ParentId": 1,
         "Children": [
           {
             "Id": 3,
-            "Name": "Station1",
+            "Name": "FurnaceChamber1",
             "ParentId": 2,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 1,
-                "SignalName": "TempSensor",
+                "SignalName": "ChamberTemperature",
                 "SignalType": "Real",
-                "Description": "Measures temperature"
+                "Description": "Temperature inside furnace chamber"
               }
             ]
           },
           {
             "Id": 4,
-            "Name": "Station2",
+            "Name": "FurnaceChamber2",
             "ParentId": 2,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 2,
-                "SignalName": "PressureSensor",
+                "SignalName": "ChamberPressure",
                 "SignalType": "Real",
-                "Description": "Measures pressure"
+                "Description": "Pressure inside furnace chamber"
               }
             ]
           }
@@ -43,42 +41,42 @@
         "Signals": [
           {
             "SignalId": 3,
-            "SignalName": "LineStatus",
+            "SignalName": "FurnaceStatus",
             "SignalType": "Integer",
-            "Description": "Current status of line"
+            "Description": "Indicates furnace operational status"
           }
         ]
       },
       {
         "Id": 5,
-        "Name": "ProductionLineB",
+        "Name": "RollingMill",
         "ParentId": 1,
         "Children": [
           {
             "Id": 6,
-            "Name": "Station3",
+            "Name": "MillStand1",
             "ParentId": 5,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 4,
-                "SignalName": "Speed",
+                "SignalName": "RollSpeed",
                 "SignalType": "Integer",
-                "Description": "Speed of conveyor"
+                "Description": "Speed of rolling stand"
               }
             ]
           },
           {
             "Id": 7,
-            "Name": "Station4",
+            "Name": "MillStand2",
             "ParentId": 5,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 5,
-                "SignalName": "EnergyUsage",
+                "SignalName": "MotorLoad",
                 "SignalType": "Real",
-                "Description": "Energy consumed"
+                "Description": "Load on mill stand motor"
               }
             ]
           }
@@ -86,9 +84,9 @@
         "Signals": [
           {
             "SignalId": 6,
-            "SignalName": "OutputCount",
+            "SignalName": "ProductionOutput",
             "SignalType": "Integer",
-            "Description": "Total units produced"
+            "Description": "Total tons rolled per hour"
           }
         ]
       }
@@ -96,47 +94,47 @@
     "Signals": [
       {
         "SignalId": 7,
-        "SignalName": "PowerConsumption",
+        "SignalName": "PlantPowerConsumption",
         "SignalType": "Real",
-        "Description": "Overall power usage"
+        "Description": "Overall power usage of steel plant"
       }
     ]
   },
   {
     "Id": 8,
-    "Name": "FactoryBeta",
+    "Name": "AutomobileFactory",
     "ParentId": null,
     "Children": [
       {
         "Id": 9,
-        "Name": "AssemblyUnit1",
+        "Name": "WeldingUnit",
         "ParentId": 8,
         "Children": [
           {
             "Id": 10,
-            "Name": "RobotArm1",
+            "Name": "RobotWelder1",
             "ParentId": 9,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 8,
-                "SignalName": "ArmSpeed",
+                "SignalName": "ArcVoltage",
                 "SignalType": "Real",
-                "Description": "Movement speed of robot arm"
+                "Description": "Voltage of welding arc"
               }
             ]
           },
           {
             "Id": 11,
-            "Name": "RobotArm2",
+            "Name": "RobotWelder2",
             "ParentId": 9,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 9,
-                "SignalName": "ArmLoad",
+                "SignalName": "WeldCurrent",
                 "SignalType": "Integer",
-                "Description": "Load carried by robot arm"
+                "Description": "Current flow during welding"
               }
             ]
           }
@@ -144,42 +142,42 @@
         "Signals": [
           {
             "SignalId": 10,
-            "SignalName": "UnitEfficiency",
+            "SignalName": "WeldingUnitEfficiency",
             "SignalType": "Integer",
-            "Description": "Efficiency rating of unit"
+            "Description": "Efficiency rating of welding line"
           }
         ]
       },
       {
         "Id": 12,
-        "Name": "AssemblyUnit2",
+        "Name": "PaintingShop",
         "ParentId": 8,
         "Children": [
           {
             "Id": 13,
-            "Name": "RobotArm3",
+            "Name": "SprayBooth1",
             "ParentId": 12,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 11,
-                "SignalName": "ArmTemp",
+                "SignalName": "BoothAirTemp",
                 "SignalType": "Real",
-                "Description": "Temperature of robot arm"
+                "Description": "Air temperature inside spray booth"
               }
             ]
           },
           {
             "Id": 14,
-            "Name": "RobotArm4",
+            "Name": "SprayBooth2",
             "ParentId": 12,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 12,
-                "SignalName": "ArmTorque",
+                "SignalName": "BoothAirHumidity",
                 "SignalType": "Real",
-                "Description": "Torque applied by robot arm"
+                "Description": "Humidity inside spray booth"
               }
             ]
           }
@@ -187,9 +185,9 @@
         "Signals": [
           {
             "SignalId": 13,
-            "SignalName": "OutputQuality",
+            "SignalName": "PaintThickness",
             "SignalType": "Integer",
-            "Description": "Quality rating of assembly output"
+            "Description": "Average paint thickness applied"
           }
         ]
       }
@@ -197,47 +195,47 @@
     "Signals": [
       {
         "SignalId": 14,
-        "SignalName": "FactoryLoad",
+        "SignalName": "CompressedAirUsage",
         "SignalType": "Real",
-        "Description": "Load on factory systems"
+        "Description": "Air consumption across factory"
       }
     ]
   },
   {
     "Id": 15,
-    "Name": "FactoryGamma",
+    "Name": "FoodProcessingPlant",
     "ParentId": null,
     "Children": [
       {
         "Id": 16,
-        "Name": "Warehouse1",
+        "Name": "ColdStorage",
         "ParentId": 15,
         "Children": [
           {
             "Id": 17,
-            "Name": "ColdStorage",
+            "Name": "FreezerSection",
             "ParentId": 16,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 15,
-                "SignalName": "Temperature",
+                "SignalName": "FreezerTemp",
                 "SignalType": "Real",
-                "Description": "Storage temperature"
+                "Description": "Temperature inside freezer"
               }
             ]
           },
           {
             "Id": 18,
-            "Name": "DryStorage",
+            "Name": "ChillerSection",
             "ParentId": 16,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 16,
-                "SignalName": "Humidity",
+                "SignalName": "ChillerHumidity",
                 "SignalType": "Real",
-                "Description": "Humidity level"
+                "Description": "Humidity inside chiller"
               }
             ]
           }
@@ -245,42 +243,42 @@
         "Signals": [
           {
             "SignalId": 17,
-            "SignalName": "StorageCapacity",
+            "SignalName": "StorageCapacityUsage",
             "SignalType": "Integer",
-            "Description": "Capacity usage percentage"
+            "Description": "Percentage of cold storage used"
           }
         ]
       },
       {
         "Id": 19,
-        "Name": "Warehouse2",
+        "Name": "PackagingLine",
         "ParentId": 15,
         "Children": [
           {
             "Id": 20,
-            "Name": "RackA",
+            "Name": "CartonSealer",
             "ParentId": 19,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 18,
-                "SignalName": "RackLoad",
+                "SignalName": "SealerPressure",
                 "SignalType": "Integer",
-                "Description": "Load on rack"
+                "Description": "Pressure applied during sealing"
               }
             ]
           },
           {
             "Id": 21,
-            "Name": "RackB",
+            "Name": "LabelPrinter",
             "ParentId": 19,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 19,
-                "SignalName": "RackTemp",
+                "SignalName": "PrinterTemperature",
                 "SignalType": "Real",
-                "Description": "Temperature at rack"
+                "Description": "Operating temperature of printer"
               }
             ]
           }
@@ -288,9 +286,9 @@
         "Signals": [
           {
             "SignalId": 20,
-            "SignalName": "Occupancy",
+            "SignalName": "LineSpeed",
             "SignalType": "Integer",
-            "Description": "Occupied vs free space"
+            "Description": "Units packaged per minute"
           }
         ]
       }
@@ -298,47 +296,47 @@
     "Signals": [
       {
         "SignalId": 21,
-        "SignalName": "LogisticsLoad",
+        "SignalName": "WaterUsage",
         "SignalType": "Integer",
-        "Description": "Overall logistics load"
+        "Description": "Total water consumption in plant"
       }
     ]
   },
   {
     "Id": 22,
-    "Name": "FactoryDelta",
+    "Name": "ChemicalPlant",
     "ParentId": null,
     "Children": [
       {
         "Id": 23,
-        "Name": "MaintenanceDept",
+        "Name": "ReactorSection",
         "ParentId": 22,
         "Children": [
           {
             "Id": 24,
-            "Name": "Electrical",
+            "Name": "Reactor1",
             "ParentId": 23,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 22,
-                "SignalName": "Voltage",
+                "SignalName": "ReactorPressure",
                 "SignalType": "Real",
-                "Description": "Operating voltage"
+                "Description": "Pressure inside reactor vessel"
               }
             ]
           },
           {
             "Id": 25,
-            "Name": "Mechanical",
+            "Name": "Reactor2",
             "ParentId": 23,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 23,
-                "SignalName": "Vibration",
+                "SignalName": "ReactorVibration",
                 "SignalType": "Real",
-                "Description": "Vibration level"
+                "Description": "Vibration level of reactor"
               }
             ]
           }
@@ -346,51 +344,50 @@
         "Signals": [
           {
             "SignalId": 24,
-            "SignalName": "DeptStatus",
+            "SignalName": "ReactorStatus",
             "SignalType": "Integer",
-            "Description": "Current status of maintenance"
+            "Description": "Current status of reactors"
           }
         ]
       },
       {
         "Id": 26,
-        "Name": "SafetyDept",
+        "Name": "SafetySystem",
         "ParentId": 22,
         "Children": [
           {
             "Id": 27,
-            "Name": "FireSafety",
+            "Name": "FireSuppression",
             "ParentId": 26,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 25,
-                "SignalName": "AlarmStatus",
+                "SignalName": "AlarmActive",
                 "SignalType": "Integer",
-                "Description": "Fire alarm active or not"
+                "Description": "Fire alarm activation status"
               }
             ]
           },
           {
             "Id": 28,
-            "Name": "HealthSafety",
+            "Name": "GasDetection",
             "ParentId": 26,
             "Children": [],
             "Signals": [
               {
                 "SignalId": 26,
-                "SignalName": "FirstAidKits",
+                "SignalName": "GasLeakLevel",
                 "SignalType": "Integer",
-                "Description": "Number of first aid kits available"
+                "Description": "Gas leak concentration detected"
               }
             ]
           }
-
         ],
         "Signals": [
           {
             "SignalId": 27,
-            "SignalName": "IncidentReports",
+            "SignalName": "SafetyIncidents",
             "SignalType": "Integer",
             "Description": "Number of incidents reported"
           }
@@ -400,9 +397,9 @@
     "Signals": [
       {
         "SignalId": 28,
-        "SignalName": "FactorySafetyIndex",
+        "SignalName": "PlantSafetyIndex",
         "SignalType": "Integer",
-        "Description": "Overall safety rating"
+        "Description": "Overall safety rating of chemical plant"
       }
     ]
   }

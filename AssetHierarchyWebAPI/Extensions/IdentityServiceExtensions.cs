@@ -15,11 +15,9 @@ namespace AssetHierarchyWebAPI.Extensions
             services.AddDbContext<AssetContext>(options =>
                 options.UseSqlServer(config.GetConnectionString("AssetConnStr")));
 
-            // ASP.NET Identity
             services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 options.User.RequireUniqueEmail = true;
-
                 options.Password.RequiredLength = 8;
                 options.Password.RequireDigit = true;
                 options.Password.RequireUppercase = true;
@@ -29,7 +27,6 @@ namespace AssetHierarchyWebAPI.Extensions
             .AddEntityFrameworkStores<AssetContext>()
             .AddDefaultTokenProviders();
 
-            // JWT
             var jwtSection = config.GetSection("Jwt");
             var key = jwtSection["Key"]!;
             var issuer = jwtSection["Issuer"]!;
@@ -42,24 +39,20 @@ namespace AssetHierarchyWebAPI.Extensions
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; 
+                options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-
                     ValidateIssuer = true,
                     ValidIssuer = issuer,
-
                     ValidateAudience = true,
                     ValidAudience = audience,
-
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
 
-                // Extract token from cookie
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
@@ -72,9 +65,21 @@ namespace AssetHierarchyWebAPI.Extensions
                         return Task.CompletedTask;
                     }
                 };
+            })
+            .AddGoogle("Google", options =>
+            {
+                options.ClientId = config["Authentication:Google:ClientId"]!;
+                options.ClientSecret = config["Authentication:Google:ClientSecret"]!;
+                options.SignInScheme = IdentityConstants.ExternalScheme;
+            })
+            .AddGitHub("GitHub", options =>
+            {
+                options.ClientId = config["Authentication:GitHub:ClientId"]!;
+                options.ClientSecret = config["Authentication:GitHub:ClientSecret"]!;
+                options.Scope.Add("user:email");
+                options.SignInScheme = IdentityConstants.ExternalScheme;
             });
 
-            // Authorization policies
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
