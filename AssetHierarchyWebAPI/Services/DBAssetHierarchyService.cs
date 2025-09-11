@@ -49,13 +49,13 @@ namespace AssetHierarchyWebAPI.Services
 
         private bool IsValidName(string name)
         {
-            return Regex.IsMatch(name, @"^[A-Za-z][A-Za-z0-9 ]*$");
+            return Regex.IsMatch(name, @"^[A-Za-z][A-Za-z0-9_ ]*$");
         }
 
         private async Task SendNotificationAsync(string message)
         {
             //int id = _notificationStore.AddNotification(message);
-            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", message);  // Change: Send id and message
+            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", message);
         }
 
 

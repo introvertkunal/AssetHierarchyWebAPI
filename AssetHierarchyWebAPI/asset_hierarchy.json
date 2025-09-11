@@ -3,404 +3,252 @@
     "Id": 1,
     "Name": "SteelPlant",
     "ParentId": null,
+    "Parent": null,
     "Children": [
       {
         "Id": 2,
         "Name": "BlastFurnace",
         "ParentId": 1,
+        "Parent": null,
         "Children": [
           {
             "Id": 3,
             "Name": "FurnaceChamber1",
             "ParentId": 2,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 1,
-                "SignalName": "ChamberTemperature",
-                "SignalType": "Real",
-                "Description": "Temperature inside furnace chamber"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 4,
             "Name": "FurnaceChamber2",
             "ParentId": 2,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 2,
-                "SignalName": "ChamberPressure",
-                "SignalType": "Real",
-                "Description": "Pressure inside furnace chamber"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 3,
-            "SignalName": "FurnaceStatus",
-            "SignalType": "Integer",
-            "Description": "Indicates furnace operational status"
-          }
-        ]
+        "Signals": []
       },
       {
         "Id": 5,
         "Name": "RollingMill",
         "ParentId": 1,
+        "Parent": null,
         "Children": [
           {
             "Id": 6,
             "Name": "MillStand1",
             "ParentId": 5,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 4,
-                "SignalName": "RollSpeed",
-                "SignalType": "Integer",
-                "Description": "Speed of rolling stand"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 7,
             "Name": "MillStand2",
             "ParentId": 5,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 5,
-                "SignalName": "MotorLoad",
-                "SignalType": "Real",
-                "Description": "Load on mill stand motor"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 6,
-            "SignalName": "ProductionOutput",
-            "SignalType": "Integer",
-            "Description": "Total tons rolled per hour"
-          }
-        ]
+        "Signals": []
       }
     ],
-    "Signals": [
-      {
-        "SignalId": 7,
-        "SignalName": "PlantPowerConsumption",
-        "SignalType": "Real",
-        "Description": "Overall power usage of steel plant"
-      }
-    ]
+    "Signals": []
   },
   {
     "Id": 8,
     "Name": "AutomobileFactory",
     "ParentId": null,
+    "Parent": null,
     "Children": [
       {
         "Id": 9,
         "Name": "WeldingUnit",
         "ParentId": 8,
+        "Parent": null,
         "Children": [
           {
             "Id": 10,
             "Name": "RobotWelder1",
             "ParentId": 9,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 8,
-                "SignalName": "ArcVoltage",
-                "SignalType": "Real",
-                "Description": "Voltage of welding arc"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 11,
             "Name": "RobotWelder2",
             "ParentId": 9,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 9,
-                "SignalName": "WeldCurrent",
-                "SignalType": "Integer",
-                "Description": "Current flow during welding"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 10,
-            "SignalName": "WeldingUnitEfficiency",
-            "SignalType": "Integer",
-            "Description": "Efficiency rating of welding line"
-          }
-        ]
+        "Signals": []
       },
       {
         "Id": 12,
         "Name": "PaintingShop",
         "ParentId": 8,
+        "Parent": null,
         "Children": [
           {
             "Id": 13,
             "Name": "SprayBooth1",
             "ParentId": 12,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 11,
-                "SignalName": "BoothAirTemp",
-                "SignalType": "Real",
-                "Description": "Air temperature inside spray booth"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 14,
             "Name": "SprayBooth2",
             "ParentId": 12,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 12,
-                "SignalName": "BoothAirHumidity",
-                "SignalType": "Real",
-                "Description": "Humidity inside spray booth"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 13,
-            "SignalName": "PaintThickness",
-            "SignalType": "Integer",
-            "Description": "Average paint thickness applied"
-          }
-        ]
+        "Signals": []
       }
     ],
-    "Signals": [
-      {
-        "SignalId": 14,
-        "SignalName": "CompressedAirUsage",
-        "SignalType": "Real",
-        "Description": "Air consumption across factory"
-      }
-    ]
+    "Signals": []
   },
   {
     "Id": 15,
     "Name": "FoodProcessingPlant",
     "ParentId": null,
+    "Parent": null,
     "Children": [
       {
         "Id": 16,
         "Name": "ColdStorage",
         "ParentId": 15,
+        "Parent": null,
         "Children": [
           {
             "Id": 17,
             "Name": "FreezerSection",
             "ParentId": 16,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 15,
-                "SignalName": "FreezerTemp",
-                "SignalType": "Real",
-                "Description": "Temperature inside freezer"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 18,
             "Name": "ChillerSection",
             "ParentId": 16,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 16,
-                "SignalName": "ChillerHumidity",
-                "SignalType": "Real",
-                "Description": "Humidity inside chiller"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 17,
-            "SignalName": "StorageCapacityUsage",
-            "SignalType": "Integer",
-            "Description": "Percentage of cold storage used"
-          }
-        ]
+        "Signals": []
       },
       {
         "Id": 19,
         "Name": "PackagingLine",
         "ParentId": 15,
+        "Parent": null,
         "Children": [
           {
             "Id": 20,
             "Name": "CartonSealer",
             "ParentId": 19,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 18,
-                "SignalName": "SealerPressure",
-                "SignalType": "Integer",
-                "Description": "Pressure applied during sealing"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 21,
             "Name": "LabelPrinter",
             "ParentId": 19,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 19,
-                "SignalName": "PrinterTemperature",
-                "SignalType": "Real",
-                "Description": "Operating temperature of printer"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 20,
-            "SignalName": "LineSpeed",
-            "SignalType": "Integer",
-            "Description": "Units packaged per minute"
-          }
-        ]
+        "Signals": []
       }
     ],
-    "Signals": [
-      {
-        "SignalId": 21,
-        "SignalName": "WaterUsage",
-        "SignalType": "Integer",
-        "Description": "Total water consumption in plant"
-      }
-    ]
+    "Signals": []
   },
   {
     "Id": 22,
     "Name": "ChemicalPlant",
     "ParentId": null,
+    "Parent": null,
     "Children": [
       {
         "Id": 23,
         "Name": "ReactorSection",
         "ParentId": 22,
+        "Parent": null,
         "Children": [
           {
             "Id": 24,
             "Name": "Reactor1",
             "ParentId": 23,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 22,
-                "SignalName": "ReactorPressure",
-                "SignalType": "Real",
-                "Description": "Pressure inside reactor vessel"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 25,
             "Name": "Reactor2",
             "ParentId": 23,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 23,
-                "SignalName": "ReactorVibration",
-                "SignalType": "Real",
-                "Description": "Vibration level of reactor"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 24,
-            "SignalName": "ReactorStatus",
-            "SignalType": "Integer",
-            "Description": "Current status of reactors"
-          }
-        ]
+        "Signals": []
       },
       {
         "Id": 26,
         "Name": "SafetySystem",
         "ParentId": 22,
+        "Parent": null,
         "Children": [
           {
             "Id": 27,
             "Name": "FireSuppression",
             "ParentId": 26,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 25,
-                "SignalName": "AlarmActive",
-                "SignalType": "Integer",
-                "Description": "Fire alarm activation status"
-              }
-            ]
+            "Signals": []
           },
           {
             "Id": 28,
             "Name": "GasDetection",
             "ParentId": 26,
+            "Parent": null,
             "Children": [],
-            "Signals": [
-              {
-                "SignalId": 26,
-                "SignalName": "GasLeakLevel",
-                "SignalType": "Integer",
-                "Description": "Gas leak concentration detected"
-              }
-            ]
+            "Signals": []
           }
         ],
-        "Signals": [
-          {
-            "SignalId": 27,
-            "SignalName": "SafetyIncidents",
-            "SignalType": "Integer",
-            "Description": "Number of incidents reported"
-          }
-        ]
+        "Signals": []
       }
     ],
-    "Signals": [
-      {
-        "SignalId": 28,
-        "SignalName": "PlantSafetyIndex",
-        "SignalType": "Integer",
-        "Description": "Overall safety rating of chemical plant"
-      }
-    ]
+    "Signals": []
+  },
+  {
+    "Id": 29,
+    "Name": "edcwAWA",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [],
+    "Signals": []
+  },
+  {
+    "Id": 30,
+    "Name": "AECAD",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [],
+    "Signals": []
   }
 ]

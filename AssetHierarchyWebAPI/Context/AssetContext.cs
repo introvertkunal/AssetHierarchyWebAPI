@@ -1,4 +1,5 @@
 ﻿using AssetHierarchyWebAPI.Models;
+using AssetHierarchyWebAPI.Models.Auth;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,8 @@ namespace AssetHierarchyWebAPI.Context
         public DbSet<AssetNode> AssetHierarchy { get; set; }
         public DbSet<AssetSignals> AssetSignal { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

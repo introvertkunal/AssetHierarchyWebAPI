@@ -64,8 +64,7 @@ namespace AssetHierarchyWebAPI.Services
                 if (!IsValidName(signal.SignalName))
                     return $"Invalid signal name '{signal.SignalName}'.";
 
-                if (!IsValidName(signal.Description))
-                    return $"Invalid signal description '{signal.Description}'.";
+
 
                 var node = await _context.AssetHierarchy.FindAsync(assetId);
                 if (node == null)
