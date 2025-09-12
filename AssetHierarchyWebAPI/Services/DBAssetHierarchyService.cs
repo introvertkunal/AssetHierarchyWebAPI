@@ -16,18 +16,18 @@ namespace AssetHierarchyWebAPI.Services
         private const string FilePath_json = "asset_hierarchy.json";
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHubContext<NotificationHub> _hubcontext;
-        //private readonly INotificationStore _notificationStore;
+        private readonly INotificationStore _notificationStore;
         public DBAssetHierarchyService(
             AssetContext context, 
             IHttpContextAccessor httpContextAccessor, 
-            IHubContext<NotificationHub> hubcontext
-            //INotificationStore notificationStore
+            IHubContext<NotificationHub> hubcontext,
+            INotificationStore notificationStore
             )
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _hubcontext = hubcontext;
-            //_notificationStore = notificationStore;
+            _notificationStore = notificationStore;
         }
 
         private async Task LogAuditAsync(string operation, int? entityId, string? entityName)
@@ -54,8 +54,8 @@ namespace AssetHierarchyWebAPI.Services
 
         private async Task SendNotificationAsync(string message)
         {
-            //int id = _notificationStore.AddNotification(message);
-            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", message);
+            var id = _notificationStore.AddNotification(message);
+            await _hubcontext.Clients.All.SendAsync("ReceiveNotification", id, message);
         }
 
 
@@ -78,11 +78,13 @@ namespace AssetHierarchyWebAPI.Services
                 await _context.SaveChangesAsync();
 
                 await UpdateJsonFileAsync();
-                await LogAuditAsync("Added Node", newNode.Id, newNode.Name);
 
                 string parentName = parentId != null
                     ? await _context.AssetHierarchy.Where(p => p.Id == parentId).Select(p => p.Name).FirstOrDefaultAsync()
                     : "Root";
+                await LogAuditAsync($"New Asset '{name}' added under '{parentName}'", newNode.Id, newNode.Name);
+
+                
 
                 await SendNotificationAsync($"New Asset '{name}' added under '{parentName}'");
 
@@ -165,7 +167,7 @@ namespace AssetHierarchyWebAPI.Services
                 : "Root";
 
             _context.AssetHierarchy.Remove(node);
-            await LogAuditAsync("Removed Node", node.Id, node.Name);
+            await LogAuditAsync($"Asset '{node.Name}' removed from '{parentName}'", node.Id, node.Name);
 
             await SendNotificationAsync($"Asset '{node.Name}' removed from '{parentName}'");
         }

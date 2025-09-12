@@ -37,88 +37,88 @@ namespace AssetHierarchyWebAPI.Extensions
                             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                         })
-             .AddJwtBearer(options =>
-             {
-                 options.RequireHttpsMetadata = false;
-                 options.SaveToken = true;
-                 options.TokenValidationParameters = new TokenValidationParameters
-                 {
-                     ValidateIssuerSigningKey = true,
-                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-                     ValidateIssuer = true,
-                     ValidIssuer = issuer,
-                     ValidateAudience = true,
-                     ValidAudience = audience,
-                     ValidateLifetime = true,
-                     ClockSkew = TimeSpan.Zero
-                 };
-
-                 options.Events = new JwtBearerEvents
-                 {
-                     OnMessageReceived = context =>
-                     {
-                         // prefer access_token cookie then fallback to Authorization header
-                         var tokenFromCookie = context.Request.Cookies["access_token"] ?? context.Request.Cookies["auth_token"];
-                         if (!string.IsNullOrEmpty(tokenFromCookie))
+                         .AddJwtBearer(options =>
                          {
-                             context.Token = tokenFromCookie;
-                         }
-                         return Task.CompletedTask;
-                     },
-                     OnTokenValidated = async context =>
-                     {
-                         var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
-                         var userId = context.Principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                         var tvClaim = context.Principal.FindFirst("tv")?.Value;
+                             options.RequireHttpsMetadata = false;
+                             options.SaveToken = true;
+                             options.TokenValidationParameters = new TokenValidationParameters
+                             {
+                                 ValidateIssuerSigningKey = true,
+                                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                                 ValidateIssuer = true,
+                                 ValidIssuer = issuer,
+                                 ValidateAudience = true,
+                                 ValidAudience = audience,
+                                 ValidateLifetime = true,
+                                 ClockSkew = TimeSpan.Zero
+                             };
 
-                         if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(tvClaim))
-                         {
-                             context.Fail("Missing claims.");
-                             return;
-                         }
+                             options.Events = new JwtBearerEvents
+                             {
+                                 OnMessageReceived = context =>
+                                 {
+                                     // prefer access_token cookie then fallback to Authorization header
+                                     var tokenFromCookie = context.Request.Cookies["access_token"];
+                                     if (!string.IsNullOrEmpty(tokenFromCookie))
+                                     {
+                                         context.Token = tokenFromCookie;
+                                     }
+                                     return Task.CompletedTask;
+                                 },
+                                 OnTokenValidated = async context =>
+                                 {
+                                     var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
+                                     var userId = context.Principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                     var tvClaim = context.Principal.FindFirst("tv")?.Value;
 
-                         var user = await userManager.FindByIdAsync(userId);
-                         if (user == null)
-                         {
-                             context.Fail("User no longer exists.");
-                             return;
-                         }
+                                     if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(tvClaim))
+                                     {
+                                         context.Fail("Missing claims.");
+                                         return;
+                                     }
 
-                         if (!int.TryParse(tvClaim, out var tv) || tv != user.TokenVersion)
-                         {
-                             context.Fail("Token has been revoked.");
-                             return;
-                         }
-                     },
-                     OnAuthenticationFailed = context =>
-                     {
-                         // optional: log
-                         return Task.CompletedTask;
-                     }
-                 };
-             })
+                                     var user = await userManager.FindByIdAsync(userId);
+                                     if (user == null)
+                                     {
+                                         context.Fail("User no longer exists.");
+                                         return;
+                                     }
 
-            .AddGoogle("Google", options =>
-            {
-                options.ClientId = config["Authentication:Google:ClientId"]!;
-                options.ClientSecret = config["Authentication:Google:ClientSecret"]!;
-                options.SignInScheme = IdentityConstants.ExternalScheme;
-            })
-            .AddGitHub("GitHub", options =>
-            {
-                options.ClientId = config["Authentication:GitHub:ClientId"]!;
-                options.ClientSecret = config["Authentication:GitHub:ClientSecret"]!;
-                options.Scope.Add("user:email");
-                options.SignInScheme = IdentityConstants.ExternalScheme;
-            });
+                                     if (!int.TryParse(tvClaim, out var tv) || tv != user.TokenVersion)
+                                     {
+                                         context.Fail("Token has been revoked.");
+                                         return;
+                                     }
+                                 },
+                                 OnAuthenticationFailed = context =>
+                                 {
+                                     // optional: log
+                                     return Task.CompletedTask;
+                                 }
+                             };
+                         })
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
-                options.AddPolicy("UserOrAdmin", p => p.RequireRole("User", "Admin"));
-            });
+                        .AddGoogle("Google", options =>
+                        {
+                            options.ClientId = config["Authentication:Google:ClientId"]!;
+                            options.ClientSecret = config["Authentication:Google:ClientSecret"]!;
+                            options.SignInScheme = IdentityConstants.ExternalScheme;
+                        })
+                        .AddGitHub("GitHub", options =>
+                        {
+                            options.ClientId = config["Authentication:GitHub:ClientId"]!;
+                            options.ClientSecret = config["Authentication:GitHub:ClientSecret"]!;
+                            options.Scope.Add("user:email");
+                            options.SignInScheme = IdentityConstants.ExternalScheme;
+                        });
 
-            return services;
-        }
+                        services.AddAuthorization(options =>
+                        {
+                            options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+                            options.AddPolicy("UserOrAdmin", p => p.RequireRole("User", "Admin"));
+                        });
+
+                        return services;
+                    }
     }
 }

@@ -1,48 +1,48 @@
-﻿//using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
-//namespace AssetHierarchyWebAPI.Hubs
-//{
-//    public interface INotificationStore
-//    {
-//        int AddNotification(string message);
-//        List<(int Id, string Message)> GetMissedNotifications(string userName);
-//        void MarkAsSeen(string userName, int lastSeenId);
-//        int LastNotificationId { get; }
-//    }
+namespace AssetHierarchyWebAPI.Hubs
+{
+    public interface INotificationStore
+    {
+        int AddNotification(string message);
+        List<(int Id, string Message)> GetMissedNotifications(string userName);
+        void MarkAsSeen(string userName, int lastSeenId);
+        int LastNotificationId { get; }
+    }
 
-//    public class InMemoryNotificationStore : INotificationStore
-//    {
-//        private readonly List<(int Id, string Message)> _notifications = new();
-//        private int _counter = 0;
-//        private readonly ConcurrentDictionary<string, int> _userLastSeen = new();
+    public class InMemoryNotificationStore : INotificationStore
+    {
+        private readonly List<(int Id, string Message)> _notifications = new();
+        private int _counter = 0;
+        private readonly ConcurrentDictionary<string, int> _userLastSeen = new();
 
-//        public int LastNotificationId => _counter;
+        public int LastNotificationId => _counter;
 
-//        public int AddNotification(string message)
-//        {
-//            var id = Interlocked.Increment(ref _counter);
-//            lock (_notifications)
-//            {
-//                _notifications.Add((id, message));
-//                if (_notifications.Count > 100)
-//                    _notifications.RemoveAt(0);
-//            }
-//            return id;
-//        }
+        public int AddNotification(string message)
+        {
+            var id = Interlocked.Increment(ref _counter);
+            lock (_notifications)
+            {
+                _notifications.Add((id, message));
+                if (_notifications.Count > 100)
+                    _notifications.RemoveAt(0);
+            }
+            return id;
+        }
 
-//        public List<(int Id, string Message)> GetMissedNotifications(string userName)
-//        {
-//            int lastSeenId = _userLastSeen.GetOrAdd(userName, 0);
-//            lock (_notifications)
-//            {
-//                return _notifications.Where(n => n.Id > lastSeenId).ToList();
-//            }
-//        }
+        public List<(int Id, string Message)> GetMissedNotifications(string userName)
+        {
+            int lastSeenId = _userLastSeen.GetOrAdd(userName, 0);
+            lock (_notifications)
+            {
+                return _notifications.Where(n => n.Id > lastSeenId).ToList();
+            }
+        }
 
-//        public void MarkAsSeen(string userName, int lastSeenId)
-//        {
-//            _userLastSeen.AddOrUpdate(userName, lastSeenId, (key, oldValue) => Math.Max(oldValue, lastSeenId));
-//        }
-//    }
+        public void MarkAsSeen(string userName, int lastSeenId)
+        {
+            _userLastSeen.AddOrUpdate(userName, lastSeenId, (key, oldValue) => Math.Max(oldValue, lastSeenId));
+        }
+    }
 
-//}
+}

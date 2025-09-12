@@ -1,0 +1,103 @@
+[
+  {
+    "Id": 1,
+    "Name": "SteelPlant",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [
+      {
+        "Id": 5,
+        "Name": "RollingMill",
+        "ParentId": 1,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 6,
+            "Name": "MillStand1",
+            "ParentId": 5,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 7,
+            "Name": "MillStand2",
+            "ParentId": 5,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
+        "Id": 31,
+        "Name": "as",
+        "ParentId": 1,
+        "Parent": null,
+        "Children": [],
+        "Signals": []
+      }
+    ],
+    "Signals": []
+  },
+  {
+    "Id": 15,
+    "Name": "FoodProcessingPlant",
+    "ParentId": null,
+    "Parent": null,
+    "Children": [
+      {
+        "Id": 16,
+        "Name": "ColdStorage",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 17,
+            "Name": "FreezerSection",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 18,
+            "Name": "ChillerSection",
+            "ParentId": 16,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      },
+      {
+        "Id": 19,
+        "Name": "PackagingLine",
+        "ParentId": 15,
+        "Parent": null,
+        "Children": [
+          {
+            "Id": 20,
+            "Name": "CartonSealer",
+            "ParentId": 19,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          },
+          {
+            "Id": 21,
+            "Name": "LabelPrinter",
+            "ParentId": 19,
+            "Parent": null,
+            "Children": [],
+            "Signals": []
+          }
+        ],
+        "Signals": []
+      }
+    ],
+    "Signals": []
+  }
+]

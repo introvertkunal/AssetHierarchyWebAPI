@@ -75,14 +75,12 @@ namespace AssetHierarchyWebAPI.Controllers
 
                 if (isAdmin)
                 {
-                    Console.WriteLine("Dekh idhar tak chal raha hai");
+               
                 var hasActive = await _db.RefreshTokens
                                             .AnyAsync(rt => rt.AppUserId == user.Id
                                                          && rt.Revoked == null
                                                          && rt.Expires > DateTime.UtcNow);
 
-
-                Console.WriteLine($"Active ki value yeh hai: {hasActive}");
                     if (hasActive)
                         return Conflict("Admin already logged in from another browser/device.");
                 }
@@ -177,7 +175,9 @@ namespace AssetHierarchyWebAPI.Controllers
 
                 Response.Cookies.Delete("refresh_token");
                 Response.Cookies.Delete("access_token");
-                Response.Cookies.Delete("auth_token");
+                
+               
+                
 
                 await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
                 await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);

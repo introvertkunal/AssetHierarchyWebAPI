@@ -29,9 +29,6 @@ builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
 
-
-
-
 builder.Host.UseSerilog((context, config) =>
 {
     config.WriteTo.Console()
@@ -41,7 +38,7 @@ builder.Host.UseSerilog((context, config) =>
 builder.Services.AddControllers()
     .AddXmlSerializerFormatters();
 
-//builder.Services.AddSingleton<INotificationStore, InMemoryNotificationStore>();
+builder.Services.AddSingleton<INotificationStore, InMemoryNotificationStore>();
 
 builder.Services.AddSignalR();
 
