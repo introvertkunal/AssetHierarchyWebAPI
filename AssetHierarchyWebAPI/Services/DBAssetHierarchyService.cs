@@ -1,7 +1,8 @@
 ﻿using AssetHierarchyWebAPI.Context;
+using AssetHierarchyWebAPI.Domain.Entities;
 using AssetHierarchyWebAPI.Hubs;
 using AssetHierarchyWebAPI.Interfaces;
-using AssetHierarchyWebAPI.Models;
+
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;

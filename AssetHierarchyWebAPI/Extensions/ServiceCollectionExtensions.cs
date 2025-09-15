@@ -13,15 +13,16 @@ namespace AssetHierarchyWebAPI.Extensions
         {
             string format = configuration["storageFormat"] ?? "json";
 
-            if (format == "xml")
-            {
-                services.AddScoped<Interfaces.IAssetHierarchyService, Services.XmlAssetHierarchyService>();
-            }
-            else if (format == "json")
-            {
-                services.AddScoped<Interfaces.IAssetHierarchyService, Services.JsonAssetHierarchyService>();
-            }
-            else if (format == "db")
+            //if (format == "xml")
+            //{
+            //    services.AddScoped<Interfaces.IAssetHierarchyService, Services.XmlAssetHierarchyService>();
+            //}
+            //else if (format == "json")
+            //{
+            //    services.AddScoped<Interfaces.IAssetHierarchyService, Services.JsonAssetHierarchyService>();
+            //}
+            //else
+            if (format == "db")
             {
                 services.AddScoped<IAssetSignal, DBAssetSignalService>();
                
