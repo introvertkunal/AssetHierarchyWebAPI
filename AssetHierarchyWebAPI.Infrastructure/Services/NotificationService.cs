@@ -1,5 +1,5 @@
 ﻿using AssetHierarchyWebAPI.Application.Interfaces;
-using AssetHierarchyWebAPI.Hubs;
+using AssetHierarchyWebAPI.API.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace AssetHierarchyWebAPI.Infrastructure.Services

@@ -82,5 +82,29 @@ namespace AssetHierarchyWebAPI.Infrastructure.Repositories
             }
             return false;
         }
+
+        public async Task ClearHierarchyAsync()
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.AssetSignal.RemoveRange(_context.AssetSignal);
+
+                _context.AssetHierarchy.RemoveRange(_context.AssetHierarchy);
+
+                await _context.SaveChangesAsync();
+
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetHierarchy', RESEED, 0)");
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetSignal', RESEED, 0)");
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
     }
 }

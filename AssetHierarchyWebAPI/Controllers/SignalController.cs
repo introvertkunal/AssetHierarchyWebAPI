@@ -1,8 +1,8 @@
-﻿using AssetHierarchyWebAPI.Interfaces;
-using AssetHierarchyWebAPI.Models;
+﻿
+using AssetHierarchyWebAPI.Application.Interfaces;
+using AssetHierarchyWebAPI.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.RegularExpressions;
 
 namespace AssetHierarchyWebAPI.Controllers
 {
@@ -11,14 +11,12 @@ namespace AssetHierarchyWebAPI.Controllers
     [Authorize]
     public class SignalController : ControllerBase
     {
-        private readonly IAssetSignal _signalService;
+        private readonly IAssetSignalService _signalService;
 
-        public SignalController(IAssetSignal signalService)
+        public SignalController(IAssetSignalService signalService)
         {
             _signalService = signalService;
         }
-
-
 
         // Add Signal under an Asset
         [HttpPost("{assetId}/add")]
@@ -29,7 +27,7 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("Signal details are invalid.");
 
             var result = await _signalService.AddSignalAsync(assetId, signal);
-            return Ok(result);
+            return string.IsNullOrEmpty(result) ? Ok("Signal added successfully.") : BadRequest(result);
         }
 
         // Remove Signal
@@ -41,7 +39,7 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("Invalid signal Id.");
 
             var result = await _signalService.RemoveSignalAsync(signalId);
-            return Ok(result);
+            return string.IsNullOrEmpty(result) ? Ok("Signal removed successfully.") : BadRequest(result);
         }
 
         // Update Signal
@@ -53,7 +51,7 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("Updated signal details are invalid.");
 
             var result = await _signalService.UpdateSignalAsync(signalId, updatedSignal);
-            return Ok(result);
+            return string.IsNullOrEmpty(result) ? Ok("Signal updated successfully.") : BadRequest(result);
         }
 
         // Get all signals under a Node
@@ -65,11 +63,9 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("Invalid node Id.");
 
             var signals = await _signalService.GetSignalsByNodeIdAsync(nodeId);
-
-            if (signals == null || !signals.Any())
-                return NotFound($"No signals found for AssetNode with Id {nodeId}.");
-
-            return Ok(signals);
+            return signals == null || !signals.Any()
+                ? NotFound($"No signals found for AssetNode with Id {nodeId}.")
+                : Ok(signals);
         }
     }
 }

@@ -19,21 +19,9 @@ namespace AssetHierarchyWebAPI.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            // AssetNode self-reference
-            modelBuilder.Entity<AssetNode>()
-                .HasOne(a => a.Parent)
-                .WithMany(a => a.Children)
-                .HasForeignKey(a => a.ParentId)
-                .OnDelete(DeleteBehavior.ClientCascade);
-
-            // AssetSignals -> AssetNode
-            modelBuilder.Entity<AssetSignals>()
-                .HasOne(s => s.AssetNode)
-                .WithMany(a => a.Signals)
-                .HasForeignKey(s => s.AssetNodeId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // RefreshToken -> AppUser
+            // Apply configurations
+            modelBuilder.ApplyConfiguration(new AssetNodeConfiguration());
+            modelBuilder.ApplyConfiguration(new AssetSignalConfiguration());
             modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
         }
     }

@@ -13,5 +13,7 @@ namespace AssetHierarchyWebAPI.Application.Interfaces
         Task RemoveNodeAsync(AssetNode node);
         Task UpdateNodeAsync(AssetNode node);
         Task<bool> IsDescendantAsync(int nodeId, int potentialParentId);
+
+        Task ClearHierarchyAsync();
     }
 }

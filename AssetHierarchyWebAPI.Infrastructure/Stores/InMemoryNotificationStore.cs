@@ -1,15 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using AssetHierarchyWebAPI.Application.Interfaces;
+using System.Collections.Concurrent;
 
-namespace AssetHierarchyWebAPI.Hubs
+namespace AssetHierarchyWebAPI.Infrastructure.Stores
 {
-    public interface INotificationStore
-    {
-        int AddNotification(string message);
-        List<(int Id, string Message)> GetMissedNotifications(string userName);
-        void MarkAsSeen(string userName, int lastSeenId);
-        int LastNotificationId { get; }
-    }
-
     public class InMemoryNotificationStore : INotificationStore
     {
         private readonly List<(int Id, string Message)> _notifications = new();
@@ -44,5 +37,4 @@ namespace AssetHierarchyWebAPI.Hubs
             _userLastSeen.AddOrUpdate(userName, lastSeenId, (key, oldValue) => Math.Max(oldValue, lastSeenId));
         }
     }
-
 }

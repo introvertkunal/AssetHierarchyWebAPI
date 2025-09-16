@@ -7,7 +7,7 @@ namespace AssetHierarchyWebAPI.Application.Interfaces
         Task<string> AddNodeAsync(string name, int? parentId);
         Task<string> RemoveNodeAsync(int id);
         Task<List<AssetNode>> GetHierarchyAsync();
-        Task<string> ReplaceJsonFileAsync(Stream fileStream); // instead of IFormFile
+        Task<string> ReplaceJsonFileAsync(Stream fileStream); 
         Task<AssetSearchResult> SearchNode(string name);
         Task<string> UpdateNode(int id, string newName);
         Task<string> ReorderNode(int id, int? newParentId);

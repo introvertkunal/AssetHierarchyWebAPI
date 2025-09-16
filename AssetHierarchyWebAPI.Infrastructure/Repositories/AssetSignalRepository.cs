@@ -49,5 +49,11 @@ namespace AssetHierarchyWebAPI.Infrastructure.Repositories
             return await _context.AssetSignal
                 .FirstOrDefaultAsync(s => s.AssetNodeId == nodeId && s.SignalName == signalName);
         }
+
+        public async Task<AssetSignals?> GetSignalByIdAsync(int signalId)
+        {
+            return await _context.AssetSignal
+                .FirstOrDefaultAsync(s => s.SignalId == signalId);
+        }
     }
 }

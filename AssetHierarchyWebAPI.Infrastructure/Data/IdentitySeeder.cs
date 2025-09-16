@@ -1,7 +1,8 @@
-﻿using AssetHierarchyWebAPI.Models;
+﻿using AssetHierarchyWebAPI.Domain.Entities.Auth;
+
 using Microsoft.AspNetCore.Identity;
 
-namespace AssetHierarchyWebAPI.Data
+namespace AssetHierarchyWebAPI.Infrastructure.Data
 {
     public static class IdentitySeeder
     {

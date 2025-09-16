@@ -9,5 +9,7 @@ namespace AssetHierarchyWebAPI.Application.Interfaces
         Task RemoveSignalAsync(int signalId);
         Task UpdateSignalAsync(AssetSignals signal);
         Task<List<AssetSignals>> GetSignalsByNodeIdAsync(int nodeId);
+
+        Task<AssetSignals?> GetSignalByIdAsync(int signalId);
     }
 }

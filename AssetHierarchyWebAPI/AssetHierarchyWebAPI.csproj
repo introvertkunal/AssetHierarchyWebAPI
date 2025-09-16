@@ -32,7 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AssetHierarchyWebAPI.Domain\AssetHierarchyWebAPI.Domain.csproj" />
+    <ProjectReference Include="..\AssetHierarchyWebAPI.Application\AssetHierarchyWebAPI.Application.csproj" />
+    <ProjectReference Include="..\AssetHierarchyWebAPI.Infrastructure\AssetHierarchyWebAPI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

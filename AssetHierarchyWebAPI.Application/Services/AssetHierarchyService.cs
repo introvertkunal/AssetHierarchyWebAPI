@@ -1,8 +1,7 @@
-﻿using AssetHierarchyWebAPI.Application.DTOs;
+﻿
 using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using AutoMapper;
-using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 
 namespace AssetHierarchyWebAPI.Application.Services

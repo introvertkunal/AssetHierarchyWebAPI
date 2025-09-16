@@ -1,6 +1,6 @@
 ﻿using System.Text;
-using AssetHierarchyWebAPI.Context;
-using AssetHierarchyWebAPI.Models;
+using AssetHierarchyWebAPI.Domain.Entities.Auth;
+using AssetHierarchyWebAPI.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

@@ -1,7 +1,8 @@
-﻿using AssetHierarchyWebAPI.Application.Interfaces;
+﻿
+using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+
 
 namespace AssetHierarchyWebAPI.Application.Services
 {
@@ -100,7 +101,7 @@ namespace AssetHierarchyWebAPI.Application.Services
         {
             try
             {
-                var signal = await _signalRepository.GetSignalsByIdAsync(signalId);
+                var signal = await _signalRepository.GetSignalByIdAsync(signalId); // Fixed typo
                 if (signal == null)
                     return $"Signal with Id {signalId} not found.";
 

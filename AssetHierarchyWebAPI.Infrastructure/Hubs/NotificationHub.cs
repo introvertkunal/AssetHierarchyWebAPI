@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using AssetHierarchyWebAPI.Application.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 
-namespace AssetHierarchyWebAPI.Hubs
+namespace AssetHierarchyWebAPI.API.Hubs
 {
     public class NotificationHub : Hub
     {
@@ -18,23 +19,21 @@ namespace AssetHierarchyWebAPI.Hubs
             var missed = _notificationStore.GetMissedNotifications(userName);
             foreach (var (id, msg) in missed)
             {
-                await Clients.Caller.SendAsync("ReceiveNotification", id, msg);  
+                await Clients.Caller.SendAsync("ReceiveNotification", id, msg);
             }
 
             if (missed.Any())
             {
-                _notificationStore.MarkAsSeen(userName, missed.Last().Id);  
+                _notificationStore.MarkAsSeen(userName, missed.Last().Id);
             }
             else
             {
-             
                 _notificationStore.MarkAsSeen(userName, _notificationStore.LastNotificationId);
             }
 
             await base.OnConnectedAsync();
         }
 
-     
         public Task AcknowledgeNotification(int lastSeenId)
         {
             var userName = Context.User?.Identity?.Name ?? Context.ConnectionId;
@@ -42,5 +41,4 @@ namespace AssetHierarchyWebAPI.Hubs
             return Task.CompletedTask;
         }
     }
-
 }
