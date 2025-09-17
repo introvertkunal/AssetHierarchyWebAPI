@@ -1,4 +1,5 @@
-﻿using AssetHierarchyWebAPI.Application.Interfaces;
+﻿using AssetHierarchyWebAPI.Application.DTOs;
+using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -24,20 +25,25 @@ namespace AssetHierarchyWebAPI.Infrastructure.Services
             await File.WriteAllTextAsync(_filePath, json);
         }
 
-        private List<AssetNode> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
+        private List<AssetNodeDto> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
         {
             return allNodes
                 .Where(n => n.ParentId == parentId)
-                .Select(n => new AssetNode
+                .Select(n => new AssetNodeDto
                 {
                     Id = n.Id,
                     Name = n.Name,
                     ParentId = n.ParentId,
                     Children = BuildHierarchy(allNodes, n.Id),
-                    Signals = n.Signals
+                    Signals = n.Signals.Select(s => new AssetSignalDto
+                    {
+                        SignalId = s.SignalId,
+                        SignalName = s.SignalName
+                    }).ToList()
                 })
                 .ToList();
         }
+
 
         public async Task<T> DeserializeJsonAsync<T>(Stream fileStream)
         {

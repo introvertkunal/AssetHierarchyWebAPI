@@ -1,15 +1,14 @@
-﻿using AssetHierarchyWebAPI.Domain.Entities;
+﻿using AssetHierarchyWebAPI.Application.DTOs;
+using AssetHierarchyWebAPI.Domain.Entities;
 
-namespace AssetHierarchyWebAPI.Application.Interfaces
+public interface IAssetHierarchyService
 {
-    public interface IAssetHierarchyService
-    {
-        Task<string> AddNodeAsync(string name, int? parentId);
-        Task<string> RemoveNodeAsync(int id);
-        Task<List<AssetNode>> GetHierarchyAsync();
-        Task<string> ReplaceJsonFileAsync(Stream fileStream); 
-        Task<AssetSearchResult> SearchNode(string name);
-        Task<string> UpdateNode(int id, string newName);
-        Task<string> ReorderNode(int id, int? newParentId);
-    }
+    Task<ServiceResponse> AddNodeAsync(string name, int? parentId);
+    Task<ServiceResponse> RemoveNodeAsync(int id);
+    Task<ServiceResponse> UpdateNode(int id, string newName);
+    Task<ServiceResponse> ReorderNode(int id, int? newParentId);
+    Task<ServiceResponse> ReplaceJsonFileAsync(Stream fileStream);
+
+    Task<List<AssetNodeDto>> GetHierarchyAsync();
+    Task<AssetSearchResult?> SearchNode(string name);
 }

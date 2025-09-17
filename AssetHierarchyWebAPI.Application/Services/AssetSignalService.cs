@@ -1,8 +1,7 @@
-﻿
+﻿using AssetHierarchyWebAPI.Application.DTOs;
 using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using System.Text.RegularExpressions;
-
 
 namespace AssetHierarchyWebAPI.Application.Services
 {
@@ -30,33 +29,62 @@ namespace AssetHierarchyWebAPI.Application.Services
 
         private bool IsValidName(string name)
         {
-            return Regex.IsMatch(name, @"^[A-Za-z][A-Za-z0-9 ]*$");
+            return !string.IsNullOrWhiteSpace(name) && Regex.IsMatch(name, @"^[A-Za-z][A-Za-z0-9 ]*$");
         }
 
         private bool IsValidSignalType(string signalType)
         {
-            return signalType.Equals("Integer", StringComparison.OrdinalIgnoreCase) ||
+            return !string.IsNullOrWhiteSpace(signalType) &&
+                   signalType.Equals("Integer", StringComparison.OrdinalIgnoreCase) ||
                    signalType.Equals("Real", StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task<string> AddSignalAsync(int assetId, AssetSignals signal)
+        private AssetSignals MapToEntity(AssetSignalDto dto)
+        {
+            return new AssetSignals
+            {
+                SignalId = dto.SignalId,
+                SignalName = dto.SignalName,
+                SignalType = dto.SignalType,
+                Description = dto.Description,
+                AssetNodeId = dto.AssetNodeId
+            };
+        }
+
+        private AssetSignalDto MapToDto(AssetSignals entity)
+        {
+            return new AssetSignalDto
+            {
+                SignalId = entity.SignalId,
+                SignalName = entity.SignalName,
+                SignalType = entity.SignalType,
+                Description = entity.Description,
+                AssetNodeId = entity.AssetNodeId
+            };
+        }
+
+        public async Task<ServiceResult> AddSignalAsync(int assetId, AssetSignalDto signalDto)
         {
             try
             {
-                if (!IsValidName(signal.SignalName))
-                    return $"Invalid signal name '{signal.SignalName}'.";
+                if (signalDto == null)
+                    return new ServiceResult(false, "Signal data is null.");
+
+                if (!IsValidName(signalDto.SignalName))
+                    return new ServiceResult(false, $"Invalid signal name '{signalDto.SignalName}'.");
 
                 var node = await _nodeRepository.GetNodeByIdAsync(assetId);
                 if (node == null)
-                    return $"Asset with Id {assetId} not found.";
+                    return new ServiceResult(false, $"Asset with Id {assetId} not found.");
 
-                if (!IsValidSignalType(signal.SignalType))
-                    return $"Invalid SignalType '{signal.SignalType}'. Only 'Integer' or 'Real' are allowed.";
+                if (!IsValidSignalType(signalDto.SignalType))
+                    return new ServiceResult(false, $"Invalid SignalType '{signalDto.SignalType}'. Only 'Integer' or 'Real' are allowed.");
 
-                var existingSignal = await _signalRepository.GetSignalByNameAndNodeIdAsync(signal.SignalName, assetId);
+                var existingSignal = await _signalRepository.GetSignalByNameAndNodeIdAsync(signalDto.SignalName, assetId);
                 if (existingSignal != null)
-                    return $"Signal '{signal.SignalName}' already exists under Asset '{node.Name}'.";
+                    return new ServiceResult(false, $"Signal '{signalDto.SignalName}' already exists under Asset '{node.Name}'.");
 
+                var signal = MapToEntity(signalDto);
                 signal.AssetNodeId = assetId;
                 await _signalRepository.AddSignalAsync(signal);
                 await _fileService.UpdateJsonFileAsync();
@@ -64,21 +92,24 @@ namespace AssetHierarchyWebAPI.Application.Services
                 await _auditLogService.LogAsync($"Added Signal '{signal.SignalName}' under Asset '{node.Name}'", signal.SignalId, signal.SignalName);
                 await _notificationService.SendAsync($"New Signal '{signal.SignalName}' ({signal.SignalType}) added under Asset '{node.Name}'");
 
-                return $"Signal '{signal.SignalName}' added to Asset '{node.Name}'.";
+                return new ServiceResult(true, $"Signal '{signal.SignalName}' added to Asset '{node.Name}'.");
             }
             catch (Exception ex)
             {
-                return $"Error adding signal: {ex.Message}";
+                return new ServiceResult(false, $"Error adding signal: {ex.Message}");
             }
         }
 
-        public async Task<string> RemoveSignalAsync(int signalId)
+        public async Task<ServiceResult> RemoveSignalAsync(int signalId)
         {
             try
             {
+                if (signalId < 1)
+                    return new ServiceResult(false, "Invalid signal Id.");
+
                 var signal = await _signalRepository.GetSignalByIdAsync(signalId);
                 if (signal == null)
-                    return $"Signal with Id {signalId} not found.";
+                    return new ServiceResult(false, $"Signal with Id {signalId} not found.");
 
                 var node = await _nodeRepository.GetNodeByIdAsync(signal.AssetNodeId);
                 string parentName = node?.Name ?? "Unknown";
@@ -89,36 +120,42 @@ namespace AssetHierarchyWebAPI.Application.Services
                 await _auditLogService.LogAsync($"Removed Signal '{signal.SignalName}' from Asset '{parentName}'", signalId, signal.SignalName);
                 await _notificationService.SendAsync($"Signal '{signal.SignalName}' removed from Asset '{parentName}'");
 
-                return $"Signal '{signal.SignalName}' removed successfully.";
+                return new ServiceResult(true, $"Signal '{signal.SignalName}' removed successfully.");
             }
             catch (Exception ex)
             {
-                return $"Error removing signal: {ex.Message}";
+                return new ServiceResult(false, $"Error removing signal: {ex.Message}");
             }
         }
 
-        public async Task<string> UpdateSignalAsync(int signalId, AssetSignals updatedSignal)
+        public async Task<ServiceResult> UpdateSignalAsync(int signalId, AssetSignalDto updatedSignalDto)
         {
             try
             {
-                var signal = await _signalRepository.GetSignalByIdAsync(signalId); // Fixed typo
+                if (updatedSignalDto == null)
+                    return new ServiceResult(false, "Updated signal data is null.");
+
+                var signal = await _signalRepository.GetSignalByIdAsync(signalId);
                 if (signal == null)
-                    return $"Signal with Id {signalId} not found.";
+                    return new ServiceResult(false, $"Signal with Id {signalId} not found.");
 
-                if (!IsValidSignalType(updatedSignal.SignalType))
-                    return $"Invalid SignalType '{updatedSignal.SignalType}'. Only 'Integer' or 'Real' are allowed.";
+                if (!IsValidName(updatedSignalDto.SignalName))
+                    return new ServiceResult(false, $"Invalid signal name '{updatedSignalDto.SignalName}'.");
 
-                var existingSignal = await _signalRepository.GetSignalByNameAndNodeIdAsync(updatedSignal.SignalName, signal.AssetNodeId);
+                if (!IsValidSignalType(updatedSignalDto.SignalType))
+                    return new ServiceResult(false, $"Invalid SignalType '{updatedSignalDto.SignalType}'. Only 'Integer' or 'Real' are allowed.");
+
+                var existingSignal = await _signalRepository.GetSignalByNameAndNodeIdAsync(updatedSignalDto.SignalName, signal.AssetNodeId);
                 if (existingSignal != null && existingSignal.SignalId != signalId)
-                    return $"Signal '{updatedSignal.SignalName}' already exists under this asset.";
+                    return new ServiceResult(false, $"Signal '{updatedSignalDto.SignalName}' already exists under this asset.");
 
                 var node = await _nodeRepository.GetNodeByIdAsync(signal.AssetNodeId);
                 string parentName = node?.Name ?? "Unknown";
                 string oldName = signal.SignalName;
 
-                signal.SignalName = updatedSignal.SignalName;
-                signal.SignalType = updatedSignal.SignalType;
-                signal.Description = updatedSignal.Description;
+                signal.SignalName = updatedSignalDto.SignalName;
+                signal.SignalType = updatedSignalDto.SignalType;
+                signal.Description = updatedSignalDto.Description;
 
                 await _signalRepository.UpdateSignalAsync(signal);
                 await _fileService.UpdateJsonFileAsync();
@@ -126,26 +163,30 @@ namespace AssetHierarchyWebAPI.Application.Services
                 await _auditLogService.LogAsync($"Updated Signal '{oldName}' to '{signal.SignalName}' under Asset '{parentName}'", signalId, signal.SignalName);
                 await _notificationService.SendAsync($"Signal '{oldName}' updated to '{signal.SignalName}' ({signal.SignalType}) under Asset '{parentName}'");
 
-                return $"Signal '{signal.SignalName}' updated successfully.";
+                return new ServiceResult(true, $"Signal '{signal.SignalName}' updated successfully.");
             }
             catch (Exception ex)
             {
-                return $"Error updating signal: {ex.Message}";
+                return new ServiceResult(false, $"Error updating signal: {ex.Message}");
             }
         }
 
-        public async Task<List<AssetSignals>> GetSignalsByNodeIdAsync(int nodeId)
+        public async Task<List<AssetSignalDto>> GetSignalsByNodeIdAsync(int nodeId)
         {
             try
             {
-                if (!await _nodeRepository.NodeExistsByIdAsync(nodeId))
-                    return new List<AssetSignals>();
+                if (nodeId < 1)
+                    return new List<AssetSignalDto>();
 
-                return await _signalRepository.GetSignalsByNodeIdAsync(nodeId);
+                if (!await _nodeRepository.NodeExistsByIdAsync(nodeId))
+                    return new List<AssetSignalDto>();
+
+                var signals = await _signalRepository.GetSignalsByNodeIdAsync(nodeId);
+                return signals.Select(MapToDto).ToList();
             }
             catch (Exception)
             {
-                return new List<AssetSignals>();
+                return new List<AssetSignalDto>();
             }
         }
     }

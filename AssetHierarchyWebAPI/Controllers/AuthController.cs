@@ -177,25 +177,19 @@ namespace AssetHierarchyWebAPI.Controllers
                 // Generate JWT and set cookies
                 var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                 var authService = HttpContext.RequestServices.GetRequiredService<IAuthService>();
-                var jwt = await authService.LoginAsync(new LoginRequest
-                {
-                    UserName = user.UserName,
-                    Password = "" // External login, so password not needed
-                }, ip);
 
-                if (jwt.Success && jwt.Result != null)
-                {
-                    var cookieOptions = new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Strict,
-                        Expires = DateTime.UtcNow.AddDays(1)
-                    };
+                var jwt = await _authService.ExternalLoginAsync(user, ip);
 
-                    Response.Cookies.Append("access_token", jwt.Result.AccessToken!, cookieOptions);
-                    Response.Cookies.Append("refresh_token", jwt.Result.RefreshToken!, cookieOptions);
-                }
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(1)
+                };
+
+                Response.Cookies.Append("access_token", jwt.AccessToken!, cookieOptions);
+                Response.Cookies.Append("refresh_token", jwt.RefreshToken!, cookieOptions);
 
                 return Redirect($"{returnUrl}?success=true");
             }

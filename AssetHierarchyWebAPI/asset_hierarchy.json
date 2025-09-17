@@ -16,10 +16,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 1,
+                "SignalId": 3,
                 "SignalName": "ChamberTemperature",
-                "SignalType": "Real",
-                "Description": "Temperature inside furnace chamber"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -30,20 +31,22 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 2,
+                "SignalId": 4,
                 "SignalName": "ChamberPressure",
-                "SignalType": "Real",
-                "Description": "Pressure inside furnace chamber"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 3,
+            "SignalId": 2,
             "SignalName": "FurnaceStatus",
-            "SignalType": "Integer",
-            "Description": "Indicates furnace operational status"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       },
@@ -59,10 +62,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 4,
+                "SignalId": 6,
                 "SignalName": "RollSpeed",
-                "SignalType": "Integer",
-                "Description": "Speed of rolling stand"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -73,30 +77,33 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 5,
+                "SignalId": 7,
                 "SignalName": "MotorLoad",
-                "SignalType": "Real",
-                "Description": "Load on mill stand motor"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 6,
+            "SignalId": 5,
             "SignalName": "ProductionOutput",
-            "SignalType": "Integer",
-            "Description": "Total tons rolled per hour"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       }
     ],
     "Signals": [
       {
-        "SignalId": 7,
+        "SignalId": 1,
         "SignalName": "PlantPowerConsumption",
-        "SignalType": "Real",
-        "Description": "Overall power usage of steel plant"
+        "SignalType": null,
+        "Description": null,
+        "AssetNodeId": 0
       }
     ]
   },
@@ -117,10 +124,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 8,
+                "SignalId": 10,
                 "SignalName": "ArcVoltage",
-                "SignalType": "Real",
-                "Description": "Voltage of welding arc"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -131,20 +139,22 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 9,
+                "SignalId": 11,
                 "SignalName": "WeldCurrent",
-                "SignalType": "Integer",
-                "Description": "Current flow during welding"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 10,
+            "SignalId": 9,
             "SignalName": "WeldingUnitEfficiency",
-            "SignalType": "Integer",
-            "Description": "Efficiency rating of welding line"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       },
@@ -160,10 +170,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 11,
+                "SignalId": 13,
                 "SignalName": "BoothAirTemp",
-                "SignalType": "Real",
-                "Description": "Air temperature inside spray booth"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -174,30 +185,33 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 12,
+                "SignalId": 14,
                 "SignalName": "BoothAirHumidity",
-                "SignalType": "Real",
-                "Description": "Humidity inside spray booth"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 13,
+            "SignalId": 12,
             "SignalName": "PaintThickness",
-            "SignalType": "Integer",
-            "Description": "Average paint thickness applied"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       }
     ],
     "Signals": [
       {
-        "SignalId": 14,
+        "SignalId": 8,
         "SignalName": "CompressedAirUsage",
-        "SignalType": "Real",
-        "Description": "Air consumption across factory"
+        "SignalType": null,
+        "Description": null,
+        "AssetNodeId": 0
       }
     ]
   },
@@ -218,10 +232,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 15,
+                "SignalId": 17,
                 "SignalName": "FreezerTemp",
-                "SignalType": "Real",
-                "Description": "Temperature inside freezer"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -232,20 +247,22 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 16,
+                "SignalId": 18,
                 "SignalName": "ChillerHumidity",
-                "SignalType": "Real",
-                "Description": "Humidity inside chiller"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 17,
+            "SignalId": 16,
             "SignalName": "StorageCapacityUsage",
-            "SignalType": "Integer",
-            "Description": "Percentage of cold storage used"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       },
@@ -261,10 +278,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 18,
+                "SignalId": 20,
                 "SignalName": "SealerPressure",
-                "SignalType": "Integer",
-                "Description": "Pressure applied during sealing"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -275,30 +293,33 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 19,
+                "SignalId": 21,
                 "SignalName": "PrinterTemperature",
-                "SignalType": "Real",
-                "Description": "Operating temperature of printer"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 20,
+            "SignalId": 19,
             "SignalName": "LineSpeed",
-            "SignalType": "Integer",
-            "Description": "Units packaged per minute"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       }
     ],
     "Signals": [
       {
-        "SignalId": 21,
+        "SignalId": 15,
         "SignalName": "WaterUsage",
-        "SignalType": "Integer",
-        "Description": "Total water consumption in plant"
+        "SignalType": null,
+        "Description": null,
+        "AssetNodeId": 0
       }
     ]
   },
@@ -319,10 +340,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 22,
+                "SignalId": 24,
                 "SignalName": "ReactorPressure",
-                "SignalType": "Real",
-                "Description": "Pressure inside reactor vessel"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -333,20 +355,22 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 23,
+                "SignalId": 25,
                 "SignalName": "ReactorVibration",
-                "SignalType": "Real",
-                "Description": "Vibration level of reactor"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 24,
+            "SignalId": 23,
             "SignalName": "ReactorStatus",
-            "SignalType": "Integer",
-            "Description": "Current status of reactors"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       },
@@ -362,10 +386,11 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 25,
+                "SignalId": 27,
                 "SignalName": "AlarmActive",
-                "SignalType": "Integer",
-                "Description": "Fire alarm activation status"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           },
@@ -376,31 +401,41 @@
             "Children": [],
             "Signals": [
               {
-                "SignalId": 26,
+                "SignalId": 28,
                 "SignalName": "GasLeakLevel",
-                "SignalType": "Integer",
-                "Description": "Gas leak concentration detected"
+                "SignalType": null,
+                "Description": null,
+                "AssetNodeId": 0
               }
             ]
           }
         ],
         "Signals": [
           {
-            "SignalId": 27,
+            "SignalId": 26,
             "SignalName": "SafetyIncidents",
-            "SignalType": "Integer",
-            "Description": "Number of incidents reported"
+            "SignalType": null,
+            "Description": null,
+            "AssetNodeId": 0
           }
         ]
       }
     ],
     "Signals": [
       {
-        "SignalId": 28,
+        "SignalId": 22,
         "SignalName": "PlantSafetyIndex",
-        "SignalType": "Integer",
-        "Description": "Overall safety rating of chemical plant"
+        "SignalType": null,
+        "Description": null,
+        "AssetNodeId": 0
       }
     ]
+  },
+  {
+    "Id": 29,
+    "Name": "sdcsc",
+    "ParentId": null,
+    "Children": [],
+    "Signals": []
   }
 ]

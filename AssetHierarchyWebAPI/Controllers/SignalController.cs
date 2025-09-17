@@ -1,6 +1,5 @@
-﻿
+﻿using AssetHierarchyWebAPI.Application.DTOs;
 using AssetHierarchyWebAPI.Application.Interfaces;
-using AssetHierarchyWebAPI.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,19 +17,17 @@ namespace AssetHierarchyWebAPI.Controllers
             _signalService = signalService;
         }
 
-        // Add Signal under an Asset
         [HttpPost("{assetId}/add")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AddSignal(int assetId, [FromBody] AssetSignals signal)
+        public async Task<IActionResult> AddSignal(int assetId, [FromBody] AssetSignalDto signalDto)
         {
-            if (signal == null || string.IsNullOrWhiteSpace(signal.SignalName))
+            if (signalDto == null || string.IsNullOrWhiteSpace(signalDto.SignalName))
                 return BadRequest("Signal details are invalid.");
 
-            var result = await _signalService.AddSignalAsync(assetId, signal);
-            return string.IsNullOrEmpty(result) ? Ok("Signal added successfully.") : BadRequest(result);
+            var result = await _signalService.AddSignalAsync(assetId, signalDto);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Remove Signal
         [HttpDelete("{signalId}/remove")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveSignal(int signalId)
@@ -39,22 +36,20 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("Invalid signal Id.");
 
             var result = await _signalService.RemoveSignalAsync(signalId);
-            return string.IsNullOrEmpty(result) ? Ok("Signal removed successfully.") : BadRequest(result);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Update Signal
         [HttpPut("{signalId}/update")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateSignal(int signalId, [FromBody] AssetSignals updatedSignal)
+        public async Task<IActionResult> UpdateSignal(int signalId, [FromBody] AssetSignalDto updatedSignalDto)
         {
-            if (updatedSignal == null || string.IsNullOrWhiteSpace(updatedSignal.SignalName))
+            if (updatedSignalDto == null || string.IsNullOrWhiteSpace(updatedSignalDto.SignalName))
                 return BadRequest("Updated signal details are invalid.");
 
-            var result = await _signalService.UpdateSignalAsync(signalId, updatedSignal);
-            return string.IsNullOrEmpty(result) ? Ok("Signal updated successfully.") : BadRequest(result);
+            var result = await _signalService.UpdateSignalAsync(signalId, updatedSignalDto);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Get all signals under a Node
         [HttpGet("node/{nodeId}")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetSignalsByNodeId(int nodeId)

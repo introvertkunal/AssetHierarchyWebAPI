@@ -20,7 +20,7 @@ namespace AssetHierarchyWebAPI.Controllers
             _configuration = configuration;
         }
 
-        // Add Node
+
         [HttpPost("add")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Add(string name, int? parentId)
@@ -29,10 +29,9 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("Asset name cannot be empty.");
 
             var result = await _service.AddNodeAsync(name, parentId);
-            return string.IsNullOrEmpty(result) ? Ok("Node added successfully.") : BadRequest(result);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Remove Node 
         [HttpDelete("remove")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Remove(int id)
@@ -41,41 +40,9 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("Provide a valid Asset ID");
 
             var result = await _service.RemoveNodeAsync(id);
-            return string.IsNullOrEmpty(result) ? Ok("Node removed successfully.") : BadRequest(result);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Get full hierarchy
-        [HttpGet("hierarchy")]
-        [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> GetHierarchy()
-        {
-            var hierarchy = await _service.GetHierarchyAsync();
-            return Ok(hierarchy);
-        }
-
-        // Search node
-        [HttpGet("search")]
-        [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> Search(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return BadRequest("Asset name cannot be empty.");
-
-            var result = await _service.SearchNode(name);
-            if (result == null)
-                return NotFound($"Asset '{name}' not found.");
-
-            return Ok(new
-            {
-                Id = result.Id,
-                Name = result.NodeName,
-                ParentName = result.ParentName,
-                Children = result.Children,
-                Signals = result.Signals
-            });
-        }
-
-        // Update Node (rename asset)
         [HttpPut("update")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, string newName)
@@ -84,19 +51,17 @@ namespace AssetHierarchyWebAPI.Controllers
                 return BadRequest("New asset name cannot be empty.");
 
             var result = await _service.UpdateNode(id, newName);
-            return string.IsNullOrEmpty(result) ? Ok("Node updated successfully.") : BadRequest(result);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Reorder Node (move under new parent)
         [HttpPut("reorder")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Reorder(int id, int? newParentId)
         {
             var result = await _service.ReorderNode(id, newParentId);
-            return string.IsNullOrEmpty(result) ? Ok("Node reordered successfully.") : BadRequest(result);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Replace with uploaded JSON file
         [HttpPost("replace-file")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ReplaceFileAsync(IFormFile file)
@@ -106,10 +71,18 @@ namespace AssetHierarchyWebAPI.Controllers
 
             using var stream = file.OpenReadStream();
             var result = await _service.ReplaceJsonFileAsync(stream);
-            return string.IsNullOrEmpty(result) ? Ok("File replaced successfully.") : BadRequest(result);
+            return result.Success ? Ok(result.Message) : BadRequest(result.Message);
         }
 
-        // Download current persistence file (only for JSON/XML, not DB)
+        [HttpGet("hierarchy")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> GetHierarchy()
+        {
+            var hierarchy = await _service.GetHierarchyAsync();
+            return Ok(hierarchy);
+        }
+
+
         [HttpGet("downloadFile")]
         [Authorize(Roles = "Admin,User")]
         public IActionResult DownloadFile()

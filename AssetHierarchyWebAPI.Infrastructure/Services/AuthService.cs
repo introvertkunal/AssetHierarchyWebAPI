@@ -126,6 +126,14 @@ namespace AssetHierarchyWebAPI.Infrastructure.Services
             return (true, string.Empty);
         }
 
+        public async Task<AuthResponse> ExternalLoginAsync(AppUser user, string ipAddress)
+        {
+           
+            var response = await GenerateJwtAsync(user, ipAddress, true);
+            return response;
+        }
+
+
         public async Task<AuthResponse?> GetCurrentUserAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);

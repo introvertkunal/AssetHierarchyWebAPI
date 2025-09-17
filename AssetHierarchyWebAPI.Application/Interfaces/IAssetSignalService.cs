@@ -1,12 +1,12 @@
-﻿using AssetHierarchyWebAPI.Domain.Entities;
+﻿using AssetHierarchyWebAPI.Application.DTOs;
 
 namespace AssetHierarchyWebAPI.Application.Interfaces
 {
     public interface IAssetSignalService
     {
-        Task<string> AddSignalAsync(int assetId, AssetSignals signal);
-        Task<string> RemoveSignalAsync(int signalId);
-        Task<string> UpdateSignalAsync(int signalId, AssetSignals updatedSignal);
-        Task<List<AssetSignals>> GetSignalsByNodeIdAsync(int nodeId);
+        Task<ServiceResult> AddSignalAsync(int assetId, AssetSignalDto signal);
+        Task<ServiceResult> RemoveSignalAsync(int signalId);
+        Task<ServiceResult> UpdateSignalAsync(int signalId, AssetSignalDto updatedSignal);
+        Task<List<AssetSignalDto>> GetSignalsByNodeIdAsync(int nodeId);
     }
 }

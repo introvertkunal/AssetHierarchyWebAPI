@@ -1,4 +1,4 @@
-﻿
+﻿using AssetHierarchyWebAPI.Application.DTOs;
 using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using AutoMapper;
@@ -9,9 +9,9 @@ namespace AssetHierarchyWebAPI.Application.Services
     public class AssetHierarchyService : IAssetHierarchyService
     {
         private readonly IAssetNodeRepository _nodeRepository;
-        private readonly IFileService _fileService; // For file operations
-        private readonly IAuditLogService _auditLogService; // For auditing
-        private readonly INotificationService _notificationService; // For notifications
+        private readonly IFileService _fileService;
+        private readonly IAuditLogService _auditLogService;
+        private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
         private readonly IAssetSignalRepository _nodeSignalRepository;
 
@@ -36,16 +36,17 @@ namespace AssetHierarchyWebAPI.Application.Services
             return System.Text.RegularExpressions.Regex.IsMatch(name, @"^[A-Za-z][A-Za-z0-9_ ]*$");
         }
 
-        public async Task<string> AddNodeAsync(string name, int? parentId)
+        // ----------------- ADD NODE -----------------
+        public async Task<ServiceResponse> AddNodeAsync(string name, int? parentId)
         {
             if (!IsValidName(name))
-                return $"Invalid asset name '{name}'.";
+                return new ServiceResponse { Success = false, Message = $"Invalid asset name '{name}'." };
 
             if (await _nodeRepository.NodeExistsAsync(name))
-                return $"Asset '{name}' already exists.";
+                return new ServiceResponse { Success = false, Message = $"Asset '{name}' already exists." };
 
             if (parentId != null && !await _nodeRepository.NodeExistsByIdAsync(parentId.Value))
-                return $"Parent with Id {parentId} not found.";
+                return new ServiceResponse { Success = false, Message = $"Parent with Id {parentId} not found." };
 
             var newNode = new AssetNode { Name = name, ParentId = parentId };
             await _nodeRepository.AddNodeAsync(newNode);
@@ -58,40 +59,46 @@ namespace AssetHierarchyWebAPI.Application.Services
             await _notificationService.SendAsync($"New Asset '{name}' added under '{parentName}'");
             await _fileService.UpdateJsonFileAsync();
 
-            return $"Asset {name} added successfully.";
+            return new ServiceResponse { Success = true, Message = $"Asset {name} added successfully." };
         }
 
-        public async Task<List<AssetNode>> GetHierarchyAsync()
+        // ----------------- GET HIERARCHY -----------------
+        public async Task<List<AssetNodeDto>> GetHierarchyAsync()
         {
             var allNodes = await _nodeRepository.GetAllNodesAsync(true, true);
             return BuildHierarchy(allNodes, null);
         }
 
-        private List<AssetNode> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
+        private List<AssetNodeDto> BuildHierarchy(List<AssetNode> allNodes, int? parentId)
         {
             return allNodes
                 .Where(n => n.ParentId == parentId)
-                .Select(n => new AssetNode
+                .Select(n => new AssetNodeDto
                 {
                     Id = n.Id,
                     Name = n.Name,
                     ParentId = n.ParentId,
                     Children = BuildHierarchy(allNodes, n.Id),
-                    Signals = n.Signals
+                    Signals = n.Signals.Select(s => new AssetSignalDto
+                    {
+                        SignalId = s.SignalId,
+                        SignalName = s.SignalName
+                    }).ToList()
                 })
                 .ToList();
         }
 
-        public async Task<string> RemoveNodeAsync(int id)
+        // ----------------- REMOVE NODE -----------------
+        public async Task<ServiceResponse> RemoveNodeAsync(int id)
         {
             var node = await _nodeRepository.GetNodeByIdAsync(id, true);
             if (node == null)
-                return "Asset does not exist.";
+                return new ServiceResponse { Success = false, Message = "Asset does not exist." };
 
             await DeleteNodeRecursive(node);
             await _fileService.UpdateJsonFileAsync();
 
-            return $"Asset {node.Name} and its children removed successfully.";
+            return new ServiceResponse { Success = true, Message = $"Asset {node.Name} and its children removed successfully." };
         }
 
         private async Task DeleteNodeRecursive(AssetNode node)
@@ -110,17 +117,18 @@ namespace AssetHierarchyWebAPI.Application.Services
             await _notificationService.SendAsync($"Asset '{node.Name}' removed from '{parentName}'");
         }
 
-        public async Task<string> UpdateNode(int id, string newName)
+        // ----------------- UPDATE NODE -----------------
+        public async Task<ServiceResponse> UpdateNode(int id, string newName)
         {
             if (!IsValidName(newName))
-                return $"Invalid asset name '{newName}'.";
+                return new ServiceResponse { Success = false, Message = $"Invalid asset name '{newName}'." };
 
             var node = await _nodeRepository.GetNodeByIdAsync(id);
             if (node == null)
-                return $"Asset with ID {id} does not exist.";
+                return new ServiceResponse { Success = false, Message = $"Asset with ID {id} does not exist." };
 
             if (await _nodeRepository.NodeExistsAsync(newName))
-                return $"Asset name '{newName}' already exists.";
+                return new ServiceResponse { Success = false, Message = $"Asset name '{newName}' already exists." };
 
             var prevName = node.Name;
             node.Name = newName;
@@ -134,25 +142,26 @@ namespace AssetHierarchyWebAPI.Application.Services
             await _notificationService.SendAsync($"Asset '{prevName}' renamed to '{newName}' under '{parentName}'");
             await _fileService.UpdateJsonFileAsync();
 
-            return $"{prevName} renamed to {newName}.";
+            return new ServiceResponse { Success = true, Message = $"{prevName} renamed to {newName}." };
         }
 
-        public async Task<string> ReorderNode(int id, int? newParentId)
+        // ----------------- REORDER NODE -----------------
+        public async Task<ServiceResponse> ReorderNode(int id, int? newParentId)
         {
             var node = await _nodeRepository.GetNodeByIdAsync(id);
             if (node == null)
-                return "Asset does not exist.";
+                return new ServiceResponse { Success = false, Message = "Asset does not exist." };
 
             if (newParentId != null)
             {
                 if (!await _nodeRepository.NodeExistsByIdAsync(newParentId.Value))
-                    return "New parent does not exist.";
+                    return new ServiceResponse { Success = false, Message = "New parent does not exist." };
 
                 if (id == newParentId)
-                    return "A node cannot be its own parent.";
+                    return new ServiceResponse { Success = false, Message = "A node cannot be its own parent." };
 
                 if (await _nodeRepository.IsDescendantAsync(id, newParentId.Value))
-                    return "Invalid move: cannot assign descendant as parent.";
+                    return new ServiceResponse { Success = false, Message = "Invalid move: cannot assign descendant as parent." };
             }
 
             var oldParentName = node.ParentId != null
@@ -170,10 +179,11 @@ namespace AssetHierarchyWebAPI.Application.Services
             await _notificationService.SendAsync($"Asset '{node.Name}' moved from '{oldParentName}' to '{newParentName}'");
             await _fileService.UpdateJsonFileAsync();
 
-            return "Node reordered successfully.";
+            return new ServiceResponse { Success = true, Message = "Node reordered successfully." };
         }
 
-        public async Task<AssetSearchResult> SearchNode(string name)
+        // ----------------- SEARCH NODE -----------------
+        public async Task<AssetSearchResult?> SearchNode(string name)
         {
             var node = await _nodeRepository.GetNodeByNameAsync(name);
             if (node == null)
@@ -199,13 +209,14 @@ namespace AssetHierarchyWebAPI.Application.Services
             };
         }
 
-        public async Task<string> ReplaceJsonFileAsync(Stream fileStream)
+        // ----------------- REPLACE JSON FILE -----------------
+        public async Task<ServiceResponse> ReplaceJsonFileAsync(Stream fileStream)
         {
             try
             {
                 var nodes = await _fileService.DeserializeJsonAsync<List<AssetNode>>(fileStream);
                 if (nodes == null || !nodes.Any())
-                    return "No nodes found in JSON";
+                    return new ServiceResponse { Success = false, Message = "No nodes found in JSON" };
 
                 ValidateUniqueNames(nodes);
                 await _nodeRepository.ClearHierarchyAsync();
@@ -216,15 +227,15 @@ namespace AssetHierarchyWebAPI.Application.Services
                 }
 
                 await _auditLogService.LogAsync("JSON File is Uploaded", null, null);
-                return "JSON File Uploaded Successfully";
+                return new ServiceResponse { Success = true, Message = "JSON File Uploaded Successfully" };
             }
             catch (JsonReaderException)
             {
-                return "JSON File Contains Duplicate Keys";
+                return new ServiceResponse { Success = false, Message = "JSON File Contains Duplicate Keys" };
             }
             catch (Exception)
             {
-                return "JSON File is not in Correct Format";
+                return new ServiceResponse { Success = false, Message = "JSON File is not in Correct Format" };
             }
         }
 
