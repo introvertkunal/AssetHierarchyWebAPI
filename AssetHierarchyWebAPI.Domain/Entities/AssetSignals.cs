@@ -9,5 +9,7 @@
 
         public int AssetNodeId { get; set; }
         public AssetNode AssetNode { get; set; }
+
+        public ICollection<SignalValue> SignalValues { get; set; } = new List<SignalValue>();
     }
 }

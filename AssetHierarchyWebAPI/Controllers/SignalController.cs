@@ -11,10 +11,12 @@ namespace AssetHierarchyWebAPI.Controllers
     public class SignalController : ControllerBase
     {
         private readonly IAssetSignalService _signalService;
+        private readonly IManagerQueue _managerqueue;
 
-        public SignalController(IAssetSignalService signalService)
+        public SignalController(IAssetSignalService signalService, IManagerQueue managerqueue)
         {
             _signalService = signalService;
+            _managerqueue = managerqueue;
         }
 
         [HttpPost("{assetId}/add")]
@@ -61,6 +63,14 @@ namespace AssetHierarchyWebAPI.Controllers
             return signals == null || !signals.Any()
                 ? NotFound($"No signals found for AssetNode with Id {nodeId}.")
                 : Ok(signals);
+        }
+
+        [HttpPost("{signalId}/average")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Calculate(int SignalId)
+        {
+             _managerqueue.Enqueue(SignalId);
+            return Ok($"Column '{SignalId}' added to calculation queue.");
         }
     }
 }

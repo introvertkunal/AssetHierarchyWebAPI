@@ -430,12 +430,5 @@
         "AssetNodeId": 0
       }
     ]
-  },
-  {
-    "Id": 29,
-    "Name": "sdcsc",
-    "ParentId": null,
-    "Children": [],
-    "Signals": []
   }
 ]

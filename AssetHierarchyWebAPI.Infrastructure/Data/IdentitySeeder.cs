@@ -1,12 +1,13 @@
-﻿using AssetHierarchyWebAPI.Domain.Entities.Auth;
-
+﻿using AssetHierarchyWebAPI.Domain.Entities;
+using AssetHierarchyWebAPI.Domain.Entities.Auth;
+using AssetHierarchyWebAPI.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 
 namespace AssetHierarchyWebAPI.Infrastructure.Data
 {
     public static class IdentitySeeder
     {
-        public static async Task SeedAsync(RoleManager<IdentityRole> roleManager, UserManager<AppUser> userManager)
+        public static async Task SeedAsync(RoleManager<IdentityRole> roleManager, UserManager<AppUser> userManager, AssetContext dbContext)
         {
             // Ensure roles
             foreach (var role in new[] { "Admin", "User" })
@@ -40,6 +41,25 @@ namespace AssetHierarchyWebAPI.Infrastructure.Data
                     throw new Exception($"Failed to create admin user: {errors}");
                 }
             }
+
+            dbContext.SignalValues.RemoveRange(dbContext.SignalValues);
+            await dbContext.SaveChangesAsync();
+
+            var random = new Random();
+            var signalValues = new List<SignalValue>();
+
+            for (int i = 0; i < 2000000; i++)
+            {
+                signalValues.Add(new SignalValue
+                {
+                    SignalValueData = random.NextDouble() * 1000, 
+                    SignalId = random.Next(1, 21),               
+                    RecordedAt = DateTime.UtcNow
+                });
+            }
+
+            await dbContext.SignalValues.AddRangeAsync(signalValues);
+            await dbContext.SaveChangesAsync();
         }
     }
 }

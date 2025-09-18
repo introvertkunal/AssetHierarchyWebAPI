@@ -15,6 +15,8 @@ namespace AssetHierarchyWebAPI.Infrastructure.Persistence
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+        public DbSet<SignalValue> SignalValues { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -23,6 +25,7 @@ namespace AssetHierarchyWebAPI.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new AssetNodeConfiguration());
             modelBuilder.ApplyConfiguration(new AssetSignalConfiguration());
             modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+            modelBuilder.ApplyConfiguration(new SignalValueConfiguration());
         }
     }
 }

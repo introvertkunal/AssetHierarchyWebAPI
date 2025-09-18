@@ -33,8 +33,13 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // Common services (always needed regardless of storage format)
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddSingleton<INotificationStore, InMemoryNotificationStore>();
+
+builder.Services.AddSingleton<IManagerQueue, ManagerQueue>();
+builder.Services.AddHostedService<BackgroundSignalValueAverage>();
+
+
 
 // Identity-related services
 builder.Services.AddIdentityServices(builder.Configuration);
@@ -72,14 +77,15 @@ app.UseMiddleware<AssetHierarchyWebAPI.Middlewares.MissingNameLoggingMiddleware>
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
-// 🔹 Identity Seeding
+//Identity Seeding
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var dbContext = services.GetRequiredService<AssetContext>();
 
-    await IdentitySeeder.SeedAsync(roleManager, userManager);
+    await IdentitySeeder.SeedAsync(roleManager, userManager,dbContext);
 }
 
 app.Run();
