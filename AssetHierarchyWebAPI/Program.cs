@@ -8,6 +8,7 @@ using AssetHierarchyWebAPI.Infrastructure.Persistence;
 using AssetHierarchyWebAPI.Infrastructure.Services;
 using AssetHierarchyWebAPI.Infrastructure.Stores;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +32,21 @@ builder.Services.AddAssetHierarchyServices(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Common services (always needed regardless of storage format)
-builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IFileService, FileService>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var nodeRepo = sp.GetRequiredService<IAssetNodeRepository>();
+    var nodeSignalRepo = sp.GetRequiredService<IAssetSignalRepository>();
+    var auditLog = sp.GetRequiredService<IAuditLogService>();
+    var context = sp.GetRequiredService<AssetContext>();
+
+    // Absolute path from appsettings (dev/prod differ automatically)
+    var jsonPath = config["AssetHierarchy:JsonFilePath"]
+                   ?? Path.Combine(AppContext.BaseDirectory, "asset_hierarchy.json");
+
+    return new FileService(nodeRepo, nodeSignalRepo, auditLog, context, jsonPath);
+});
+
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddSingleton<INotificationStore, InMemoryNotificationStore>();

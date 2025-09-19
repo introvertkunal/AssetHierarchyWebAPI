@@ -210,84 +210,10 @@ namespace AssetHierarchyWebAPI.Application.Services
         }
 
         // ----------------- REPLACE JSON FILE -----------------
-        public async Task<ServiceResponse> ReplaceJsonFileAsync(Stream fileStream)
+       public async Task<ServiceResponse> ReplaceJsonFileAsync(Stream fileStream)
         {
-            try
-            {
-                var nodes = await _fileService.DeserializeJsonAsync<List<AssetNode>>(fileStream);
-                if (nodes == null || !nodes.Any())
-                    return new ServiceResponse { Success = false, Message = "No nodes found in JSON" };
-
-                ValidateUniqueNames(nodes);
-                await _nodeRepository.ClearHierarchyAsync();
-
-                foreach (var node in nodes.Where(n => n.ParentId == null))
-                {
-                    await InsertNodeRecursive(node, null);
-                }
-
-                await _auditLogService.LogAsync("JSON File is Uploaded", null, null);
-                return new ServiceResponse { Success = true, Message = "JSON File Uploaded Successfully" };
-            }
-            catch (JsonReaderException)
-            {
-                return new ServiceResponse { Success = false, Message = "JSON File Contains Duplicate Keys" };
-            }
-            catch (Exception)
-            {
-                return new ServiceResponse { Success = false, Message = "JSON File is not in Correct Format" };
-            }
+          return await _fileService.ReplaceJsonFileAsync(fileStream);
         }
 
-        private void ValidateUniqueNames(IEnumerable<AssetNode> nodes)
-        {
-            var allNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            void Validate(IEnumerable<AssetNode> nodeList)
-            {
-                foreach (var node in nodeList)
-                {
-                    if (!allNames.Add(node.Name))
-                        throw new Exception($"Duplicate asset name '{node.Name}' found in JSON.");
-                    if (node.Children != null && node.Children.Any())
-                        Validate(node.Children);
-                }
-            }
-            Validate(nodes);
-        }
-
-        private async Task InsertNodeRecursive(AssetNode node, int? newParentId)
-        {
-            if (!IsValidName(node.Name))
-                throw new Exception($"Invalid asset name '{node.Name}'.");
-
-            var newNode = new AssetNode { Name = node.Name, ParentId = newParentId };
-            await _nodeRepository.AddNodeAsync(newNode);
-
-            if (node.Signals != null && node.Signals.Any())
-            {
-                foreach (var signal in node.Signals)
-                {
-                    if (!IsValidName(signal.SignalName))
-                        throw new Exception($"Invalid signal name '{signal.SignalName}'.");
-
-                    var newSignal = new AssetSignals
-                    {
-                        SignalName = signal.SignalName,
-                        SignalType = signal.SignalType,
-                        Description = signal.Description,
-                        AssetNodeId = newNode.Id
-                    };
-                    await _nodeSignalRepository.AddSignalAsync(newSignal);
-                }
-            }
-
-            if (node.Children != null && node.Children.Any())
-            {
-                foreach (var child in node.Children)
-                {
-                    await InsertNodeRecursive(child, newNode.Id);
-                }
-            }
-        }
     }
 }

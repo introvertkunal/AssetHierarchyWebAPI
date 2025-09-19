@@ -48,12 +48,12 @@ namespace AssetHierarchyWebAPI.Infrastructure.Data
             var random = new Random();
             var signalValues = new List<SignalValue>();
 
-            for (int i = 0; i < 2000000; i++)
+            for (int i = 0; i < 2000; i++)
             {
                 signalValues.Add(new SignalValue
                 {
-                    SignalValueData = random.NextDouble() * 1000, 
-                    SignalId = random.Next(1, 21),               
+                    SignalValueData = random.NextDouble() * 1000,
+                    SignalId = random.Next(1, 21),
                     RecordedAt = DateTime.UtcNow
                 });
             }

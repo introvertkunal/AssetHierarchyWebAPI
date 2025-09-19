@@ -56,7 +56,7 @@ namespace AssetHierarchyWebAPI.Infrastructure.Services
                                     $"The Average Value of {signal.SignalName} under Asset {signal.AssetNode?.Name} is {average:F2}"
                                 );
 
-                                Console.WriteLine($"The Average Value of {signal.SignalName} under Asset {signal.AssetNode?.Name} is {average:F2}");
+                                
                             }
                             else
                             {
@@ -72,7 +72,7 @@ namespace AssetHierarchyWebAPI.Infrastructure.Services
                     await _notificationservice.SendAsync($"Error: {ex.Message}");
                 }
 
-                await Task.Delay(500, stoppingToken);
+                await Task.Delay(4000, stoppingToken);
             }
         }
 
