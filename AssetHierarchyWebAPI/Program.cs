@@ -7,11 +7,32 @@ using AssetHierarchyWebAPI.Infrastructure.Data;
 using AssetHierarchyWebAPI.Infrastructure.Persistence;
 using AssetHierarchyWebAPI.Infrastructure.Services;
 using AssetHierarchyWebAPI.Infrastructure.Stores;
+using AssetHierarchyWebAPI.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using AssetHierarchyWebAPI.Infrastructure.RabbitMQConfig;
 using Serilog;
+using DotNetEnv;
+using Microsoft.AspNetCore.SignalR;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+Env.Load();
+
+
+builder.Configuration["ConnectionStrings:AssetConnStr"] = Environment.GetEnvironmentVariable("ASSET_CONN_STR");
+builder.Configuration["Jwt:Key"] = Environment.GetEnvironmentVariable("JWT_KEY");
+builder.Configuration["Jwt:Issuer"] = Environment.GetEnvironmentVariable("JWT_ISSUER");
+builder.Configuration["Jwt:Audience"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+
+builder.Configuration["Authentication:Google:ClientId"] = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+builder.Configuration["Authentication:Google:ClientSecret"] = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+
+builder.Configuration["Authentication:GitHub:ClientId"] = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
+builder.Configuration["Authentication:GitHub:ClientSecret"] = Environment.GetEnvironmentVariable("GITHUB_CLIENT_SECRET");
+
+builder.Configuration["AssetHierarchy:JsonFilePath"] = Environment.GetEnvironmentVariable("ASSET_JSON_PATH");
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -40,7 +61,7 @@ builder.Services.AddScoped<IFileService, FileService>(sp =>
     var auditLog = sp.GetRequiredService<IAuditLogService>();
     var context = sp.GetRequiredService<AssetContext>();
 
-    // Absolute path from appsettings (dev/prod differ automatically)
+    
     var jsonPath = config["AssetHierarchy:JsonFilePath"]
                    ?? Path.Combine(AppContext.BaseDirectory, "asset_hierarchy.json");
 
@@ -50,9 +71,13 @@ builder.Services.AddScoped<IFileService, FileService>(sp =>
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddSingleton<INotificationStore, InMemoryNotificationStore>();
+builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
-builder.Services.AddSingleton<IManagerQueue, ManagerQueue>();
-builder.Services.AddHostedService<BackgroundSignalValueAverage>();
+builder.Services.AddSingleton<RabbitMQSettings>();
+builder.Services.AddHostedService<SignalResultConsumerService>();
+
+builder.Services.AddHostedService<BackgroundServiceInsertSignal>();
+
 
 
 
@@ -92,15 +117,35 @@ app.UseMiddleware<AssetHierarchyWebAPI.Middlewares.MissingNameLoggingMiddleware>
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
+
+
 //Identity Seeding
 using (var scope = app.Services.CreateScope())
 {
+
     var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AssetContext>();
+
+    try
+    {
+        // Apply migrations and create DB if missing
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        throw;
+    }
+    
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var dbContext = services.GetRequiredService<AssetContext>();
 
     await IdentitySeeder.SeedAsync(roleManager, userManager,dbContext);
 }
+
+
+
 
 app.Run();

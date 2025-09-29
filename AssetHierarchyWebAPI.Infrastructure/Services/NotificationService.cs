@@ -17,8 +17,14 @@ namespace AssetHierarchyWebAPI.Infrastructure.Services
 
         public async Task SendAsync(string message)
         {
-            var id = _notificationStore.AddNotification(message);
+            var id = _notificationStore.AddGlobalNotification(message);
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", id, message);
+        }
+
+        public async Task SendToUserAsync(string UserName, string message)
+        {
+            var id = _notificationStore.AddUserNotification(UserName, message);
+            await _hubContext.Clients.User(UserName).SendAsync("ReceiveNotification", id, message);
         }
     }
 }

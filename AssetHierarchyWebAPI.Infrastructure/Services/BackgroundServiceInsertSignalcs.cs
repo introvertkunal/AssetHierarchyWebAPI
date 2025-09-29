@@ -1,7 +1,6 @@
 ﻿using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using AssetHierarchyWebAPI.Infrastructure.Persistence;
-using AssetHierarchyWebAPI.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,32 +28,34 @@ public class BackgroundServiceInsertSignal : BackgroundService
                 int signalCount = await dbContext.AssetSignal.CountAsync(stoppingToken);
 
                 var random = new Random();
-                var signalValues = new List<SignalValue>();
+                var signalValues = new SignalValue();
 
-
-                    signalValues.Add(new SignalValue
-                    {
-                        SignalValueData = random.NextDouble() * 1000,
-                        SignalId = random.Next(1, signalCount+1),
-                        RecordedAt = DateTime.UtcNow
-                    });
-                
-
-                await dbContext.SignalValues.AddRangeAsync(signalValues, stoppingToken);
+                signalValues.SignalValueData = random.NextDouble() * 1000;
+                signalValues.SignalId = random.Next(1, signalCount + 1);
+                signalValues.RecordedAt = DateTime.UtcNow;
+                   
+              
+                await dbContext.SignalValues.AddRangeAsync(signalValues);
 
                 await dbContext.SaveChangesAsync(stoppingToken);
 
+                var signal = await dbContext.AssetSignal
+                            .Include(s => s.AssetNode)
+                            .FirstOrDefaultAsync(s => s.SignalId == signalValues.SignalId, stoppingToken);
+
 
                 await _notificationService.SendAsync(
-                    $""
+                    $"{signalValues.SignalValueData} value is added to Signal {signal.SignalName} under Asset {signal.AssetNode?.Name}"
                 );
             }
             catch (Exception ex)
             {
-               
+                await _notificationService.SendAsync(
+                    $"Failed to add Signal value to Signal"
+                );
             }
 
-            await Task.Delay(2000, stoppingToken); 
+            await Task.Delay(10000, stoppingToken); 
         }
     }
 }

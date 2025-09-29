@@ -1,11 +1,11 @@
 ﻿using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Application.Services;
-using AssetHierarchyWebAPI.Domain.Entities.Auth;
+
 using AssetHierarchyWebAPI.Infrastructure.Persistence;
 using AssetHierarchyWebAPI.Infrastructure.Repositories;
-using AssetHierarchyWebAPI.Infrastructure.Services;
+
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+
 
 namespace AssetHierarchyWebAPI.Extensions
 {

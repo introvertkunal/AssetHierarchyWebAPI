@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - SA_PASSWORD=Kun@l989
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+      
+  assetapi:
+    build: .
+    container_name: assetapi
+    ports:
+      - "5114:8080"   # HTTP
+      - "7036:8081"   # HTTPS
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=Kun@l989
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - DB_USER=sa
+      - DB_PASSWORD=Kun@l989
+      - JWT_KEY=YOUKNOWIFYKNOW%^%$POIUYTGHJUYTGHUTHJUYHUYGNKIYNIIU
+      - GOOGLE_CLIENT_ID=763826774599-2hult54n3dmrlggps2lrgugcqkbsv435.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - GITHUB_CLIENT_ID=Ov23liFo0ddN9Qbrmsl2
+      - GITHUB_CLIENT_SECRET=78ceae423dec324763a09ca47bbbe92cc95830cd
+    depends_on:
+      - sqlserver
+    volumes:
+      - ./https:/https:ro   
+
+volumes:
+  sql_data:

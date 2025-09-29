@@ -1,8 +1,10 @@
 ﻿using AssetHierarchyWebAPI.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace AssetHierarchyWebAPI.API.Hubs
 {
+    [Authorize]
     public class NotificationHub : Hub
     {
         private readonly INotificationStore _notificationStore;

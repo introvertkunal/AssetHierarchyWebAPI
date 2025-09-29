@@ -2,7 +2,7 @@
 using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using AutoMapper;
-using Newtonsoft.Json;
+
 
 namespace AssetHierarchyWebAPI.Application.Services
 {
@@ -12,23 +12,21 @@ namespace AssetHierarchyWebAPI.Application.Services
         private readonly IFileService _fileService;
         private readonly IAuditLogService _auditLogService;
         private readonly INotificationService _notificationService;
-        private readonly IMapper _mapper;
-        private readonly IAssetSignalRepository _nodeSignalRepository;
+       
+        
 
         public AssetHierarchyService(
             IAssetNodeRepository nodeRepository,
             IFileService fileService,
             IAuditLogService auditLogService,
-            INotificationService notificationService,
-            IMapper mapper,
-            IAssetSignalRepository nodeSignalRepository)
+            INotificationService notificationService
+           )
         {
             _nodeRepository = nodeRepository;
             _fileService = fileService;
             _auditLogService = auditLogService;
             _notificationService = notificationService;
-            _mapper = mapper;
-            _nodeSignalRepository = nodeSignalRepository;
+           
         }
 
         private bool IsValidName(string name)
@@ -89,33 +87,50 @@ namespace AssetHierarchyWebAPI.Application.Services
         }
 
         // ----------------- REMOVE NODE -----------------
+
+
         public async Task<ServiceResponse> RemoveNodeAsync(int id)
         {
-            var node = await _nodeRepository.GetNodeByIdAsync(id, true);
+            var allNodes = await _nodeRepository.GetHierarchyAsync();
+            var node = allNodes.FirstOrDefault(n => n.Id == id);
+
             if (node == null)
                 return new ServiceResponse { Success = false, Message = "Asset does not exist." };
 
-            await DeleteNodeRecursive(node);
+            await DeleteNodeRecursive(node, allNodes);
+
+            await _nodeRepository.SaveChangesAsync();
             await _fileService.UpdateJsonFileAsync();
 
-            return new ServiceResponse { Success = true, Message = $"Asset {node.Name} and its children removed successfully." };
+            return new ServiceResponse
+            {
+                Success = true,
+                Message = $"Asset {node.Name} and its children removed successfully."
+            };
         }
 
-        private async Task DeleteNodeRecursive(AssetNode node)
+        private async Task DeleteNodeRecursive(AssetNode node, List<AssetNode> allNodes)
         {
-            foreach (var child in node.Children.ToList())
+            var children = allNodes.Where(n => n.ParentId == node.Id).ToList();
+
+            foreach (var child in children)
             {
-                await DeleteNodeRecursive(child);
+                await DeleteNodeRecursive(child, allNodes);
             }
 
             var parentName = node.ParentId != null
-                ? (await _nodeRepository.GetNodeByIdAsync(node.ParentId.Value))?.Name ?? "Root"
+                ? allNodes.FirstOrDefault(n => n.Id == node.ParentId)?.Name ?? "Root"
                 : "Root";
 
-            await _nodeRepository.RemoveNodeAsync(node);
-            await _auditLogService.LogAsync($"Asset '{node.Name}' removed from '{parentName}'", node.Id, node.Name);
-            await _notificationService.SendAsync($"Asset '{node.Name}' removed from '{parentName}'");
+            _nodeRepository.MarkForRemoval(node);
+
+            await _auditLogService.LogAsync(
+                $"Asset '{node.Name}' removed from '{parentName}'", node.Id, node.Name);
+
+            await _notificationService.SendAsync(
+                $"Asset '{node.Name}' removed from '{parentName}'");
         }
+
 
         // ----------------- UPDATE NODE -----------------
         public async Task<ServiceResponse> UpdateNode(int id, string newName)

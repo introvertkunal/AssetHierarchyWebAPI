@@ -16,6 +16,6 @@ namespace AssetHierarchyWebAPI.Domain.Entities
 
         public int SignalId { get; set; }
 
-        public AssetSignals AssetSignal { get; set; }
+        public AssetSignals? AssetSignal { get; set; }
     }
 }

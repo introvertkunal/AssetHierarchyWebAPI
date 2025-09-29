@@ -2,6 +2,12 @@
 using AssetHierarchyWebAPI.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RabbitMQ.Client;
+using AssetHierarchyWebAPI.Infrastructure.RabbitMQConfig;
+using System.Text;
+using System.Text.Json;
+
+
 
 namespace AssetHierarchyWebAPI.Controllers
 {
@@ -11,12 +17,12 @@ namespace AssetHierarchyWebAPI.Controllers
     public class SignalController : ControllerBase
     {
         private readonly IAssetSignalService _signalService;
-        private readonly IManagerQueue _managerqueue;
+        private readonly RabbitMQSettings _settings;
 
-        public SignalController(IAssetSignalService signalService, IManagerQueue managerqueue)
+        public SignalController(IAssetSignalService signalService, RabbitMQSettings settings)
         {
             _signalService = signalService;
-            _managerqueue = managerqueue;
+            _settings = settings;
         }
 
         [HttpPost("{assetId}/add")]
@@ -67,10 +73,36 @@ namespace AssetHierarchyWebAPI.Controllers
 
         [HttpPost("{signalId}/average")]
         [Authorize(Roles = "Admin")]
-        public IActionResult Calculate(int SignalId)
+        public IActionResult Calculate(int signalId)
         {
-             _managerqueue.Enqueue(SignalId);
-            return Ok($"Column '{SignalId}' added to calculation queue.");
+            var userName = User.Identity?.Name;
+
+            var factory = new ConnectionFactory()
+            {
+                HostName = _settings.HostName,
+                UserName = _settings.UserName,
+                Password = _settings.Password
+            };
+
+
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+
+            channel.QueueDeclare(queue: _settings.InputQueue,
+                                 durable: true,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
+
+            var message = JsonSerializer.Serialize(new { SignalId = signalId, UserName = userName });
+            var body = Encoding.UTF8.GetBytes(message);
+
+            channel.BasicPublish(exchange: "",
+                                 routingKey: _settings.InputQueue,
+                                 basicProperties: null,
+                                 body: body);
+
+            return Ok($"SignalId {signalId} sent to RabbitMQ queue for {userName}.");
         }
     }
 }

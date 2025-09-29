@@ -49,6 +49,15 @@ namespace AssetHierarchyWebAPI.Infrastructure.Repositories
             return await query.ToListAsync();
         }
 
+        // 🔥 New: load entire hierarchy (all nodes, children, signals)
+        public async Task<List<AssetNode>> GetHierarchyAsync()
+        {
+            return await _context.AssetHierarchy
+                .Include(n => n.Children)
+                .Include(n => n.Signals)
+                .ToListAsync();
+        }
+
         public async Task<bool> NodeExistsAsync(string name)
         {
             return await _context.AssetHierarchy.AnyAsync(n => n.Name == name);
@@ -89,7 +98,6 @@ namespace AssetHierarchyWebAPI.Infrastructure.Repositories
             try
             {
                 _context.AssetSignal.RemoveRange(_context.AssetSignal);
-
                 _context.AssetHierarchy.RemoveRange(_context.AssetHierarchy);
 
                 await _context.SaveChangesAsync();
@@ -106,5 +114,15 @@ namespace AssetHierarchyWebAPI.Infrastructure.Repositories
             }
         }
 
+        // ✅ For staged deletes
+        public void MarkForRemoval(AssetNode node)
+        {
+            _context.AssetHierarchy.Remove(node);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

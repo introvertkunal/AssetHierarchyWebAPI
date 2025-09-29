@@ -3,7 +3,6 @@ using AssetHierarchyWebAPI.Application.Interfaces;
 using AssetHierarchyWebAPI.Domain.Entities;
 using AssetHierarchyWebAPI.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace AssetHierarchyWebAPI.Infrastructure.Services
