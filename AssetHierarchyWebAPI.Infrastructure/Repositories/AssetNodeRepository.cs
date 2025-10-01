@@ -49,7 +49,6 @@ namespace AssetHierarchyWebAPI.Infrastructure.Repositories
             return await query.ToListAsync();
         }
 
-        // 🔥 New: load entire hierarchy (all nodes, children, signals)
         public async Task<List<AssetNode>> GetHierarchyAsync()
         {
             return await _context.AssetHierarchy
@@ -114,7 +113,6 @@ namespace AssetHierarchyWebAPI.Infrastructure.Repositories
             }
         }
 
-        // ✅ For staged deletes
         public void MarkForRemoval(AssetNode node)
         {
             _context.AssetHierarchy.Remove(node);

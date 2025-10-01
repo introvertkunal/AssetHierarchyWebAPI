@@ -5,15 +5,16 @@ using AssetHierarchyWebAPI.Domain.Entities.Auth;
 using AssetHierarchyWebAPI.Extensions;
 using AssetHierarchyWebAPI.Infrastructure.Data;
 using AssetHierarchyWebAPI.Infrastructure.Persistence;
+using AssetHierarchyWebAPI.Infrastructure.RabbitMQConfig;
 using AssetHierarchyWebAPI.Infrastructure.Services;
 using AssetHierarchyWebAPI.Infrastructure.Stores;
 using AssetHierarchyWebAPI.Services;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using AssetHierarchyWebAPI.Infrastructure.RabbitMQConfig;
-using Serilog;
 using DotNetEnv;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -106,6 +107,18 @@ builder.Services.AddAutoMapper(cfg =>
 
 var app = builder.Build();
 
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                       ForwardedHeaders.XForwardedProto |
+                       ForwardedHeaders.XForwardedHost
+};
+forwardedHeadersOptions.KnownNetworks.Clear(); // allow all
+forwardedHeadersOptions.KnownProxies.Clear();  // allow all
+
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
+
 // Middleware & Routing
 app.UseRouting();
 app.UseCors("AllowFrontend");
@@ -128,8 +141,11 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        // Apply migrations and create DB if missing
-        context.Database.Migrate();
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
+
     }
     catch (Exception ex)
     {

@@ -98,6 +98,8 @@ namespace AssetHierarchyWebAPI.Controllers
 
             Response.Cookies.Delete("refresh_token");
             Response.Cookies.Delete("access_token");
+
+            await _signInManager.SignOutAsync();
             return Ok("Logged out successfully.");
         }
 
